@@ -1,0 +1,39 @@
+# config/ocr_selector.yaml
+# Настройки выбора OCR-модели
+
+settings:
+  handwritten_threshold: 40.0
+  high_aspect_threshold: 1.8
+  low_aspect_threshold: 0.6
+
+rules:
+  - condition: "doc_type == 'handwritten' or handwritten_like == True"
+    model: "TrOCR"
+    engine: "onnx"
+    reason: "ручной почерк (высокоточная модель)"
+    gpu_required: false
+
+  - condition: "lang in ['ru', 'ru-ru'] and doc_type in ['юридич_документ', 'договор', 'счет', 'заявка']"
+    model: "DeepSeek-OCR"
+    engine: "transformers"
+    reason: "Ru + сложный контекст (юридический документ)"
+    gpu_required: true
+
+  - condition: "priority_speed == True"
+    model: "PaddleOCR-Classic"
+    engine: "paddle"
+    reason: "максимальная скорость"
+    gpu_required: false
+
+  - condition: "doc_type == 'textual_pdf'"
+    model: "Tesseract-LSTM"
+    engine: "tesseract"
+    reason: "чистый текст PDF — быстро + стабильно"
+    gpu_required: false
+
+  # fallback
+  - condition: "true"
+    model: "PaddleOCR-VL-0.9B"
+    engine: "onnx"
+    reason: "баланс скорость/точность"
+    gpu_required: false

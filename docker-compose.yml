@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-idps}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-idps}
+      POSTGRES_DB: ${POSTGRES_DB:-idps}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/postgresql:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U idps"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ocr-core:
+    build:
+      context: .
+      dockerfile: ocr_core/Dockerfile
+    environment:
+      OCR_CONFIG: /app/config/ocr_selector.yaml
+      TESSERACT_PATH: /usr/bin/tesseract
+      UPLOAD_DIR: /tmp/idps_uploads
+    volumes:
+      - ./config:/app/config:ro
+    ports:
+      - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  nlp-layer:
+    build:
+      context: .
+      dockerfile: nlp_layer/Dockerfile
+    ports:
+      - "8002:8002"
+
+  ingestor:
+    build:
+      context: .
+      dockerfile: ingestor/Dockerfile
+    environment:
+      OCR_URL: http://ocr-core:8001
+      NLP_URL: http://nlp-layer:8002
+      DATABASE_URL: postgresql://${POSTGRES_USER:-idps}:${POSTGRES_PASSWORD:-idps}@postgres:5432/${POSTGRES_DB:-idps}
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /tmp/idps_ingestor
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ocr-core:
+        condition: service_started
+      nlp-layer:
+        condition: service_started
+
+volumes:
+  postgres_data:
