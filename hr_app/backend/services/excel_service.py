@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 
 from hr_app.backend.database import (
-    upsert_employees, log_action, save_ticket_orders, get_setting
+    upsert_employees, log_action, save_ticket_orders, get_setting, get_conn
 )
 
 logger = logging.getLogger(__name__)
@@ -229,6 +229,105 @@ def load_main_base(file_path: str) -> Tuple[bool, str, int]:
         logger.exception("Error loading main base")
         log_action("load_main_base", os.path.basename(file_path), 0, "error", str(e))
         return False, f"Ошибка загрузки: {e}", 0
+
+
+def load_total_experience(file_path: str) -> Tuple[bool, str, int]:
+    """Загрузка общего стажа из файла ОБЩИЙ_СТАЖ.xlsx
+    
+    Ожидает колонки:
+    - Табельный_номер_UNIQUE3 (или类似)
+    - Общий_стаж
+    - Стаж_за_период
+    """
+    try:
+        logger.info("Loading total experience from %s", file_path)
+        
+        # Try to read with openpyxl engine for better compatibility
+        df = pd.read_excel(file_path, engine='openpyxl', dtype=str)
+        df.columns = df.columns.astype(str).str.strip()
+        
+        # Normalize column names
+        col_map = {}
+        for col in df.columns:
+            col_lower = col.lower().replace(' ', '_').replace('-', '_')
+            if 'табельный' in col_lower or 'tab_num' in col_lower or 'unique3' in col_lower:
+                col_map[col] = 'tab_num'
+            elif 'общий_стаж' in col_lower or 'total_experience' in col_lower or col_lower == 'общий_стаж':
+                col_map[col] = 'total_experience'
+            elif 'стаж_за_период' in col_lower or 'period_experience' in col_lower:
+                col_map[col] = 'experience_period'
+        
+        # If no mapping found, try positional mapping
+        if not col_map:
+            # Assume first column is tab_num, second is total_experience
+            if len(df.columns) >= 2:
+                col_map[df.columns[0]] = 'tab_num'
+                col_map[df.columns[1]] = 'total_experience'
+        
+        df = df.rename(columns=col_map)
+        
+        # Ensure we have tab_num
+        if 'tab_num' not in df.columns:
+            return False, "Не найдена колонка с табельным номером", 0
+        
+        # Clean data
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: safe_str(x) if pd.notna(x) else "")
+        
+        # Filter rows with tab_num
+        df = df[df['tab_num'].notna() & (df['tab_num'] != "")]
+        
+        # Update employees table with experience data
+        updated_count = 0
+        with get_conn() as conn:
+            for _, row in df.iterrows():
+                tab_num = row.get('tab_num', '')
+                if not tab_num:
+                    continue
+                    
+                total_exp = row.get('total_experience', '')
+                exp_period = row.get('experience_period', '')
+                
+                # Check if employee exists
+                existing = conn.execute(
+                    "SELECT id FROM employees WHERE tab_num=?", (tab_num,)
+                ).fetchone()
+                
+                if existing:
+                    # Update existing employee
+                    if total_exp or exp_period:
+                        updates = []
+                        params = []
+                        if total_exp:
+                            updates.append("total=?")
+                            params.append(total_exp)
+                        if exp_period:
+                            updates.append("extra_json=json_insert(coalesce(extra_json, '{}'), '$.experience_period', ?)")
+                            params.append(exp_period)
+                        params.append(tab_num)
+                        
+                        if updates:
+                            conn.execute(
+                                f"UPDATE employees SET {','.join(updates)} WHERE tab_num=?",
+                                params
+                            )
+                            updated_count += 1
+                else:
+                    # Create new employee record with minimal data
+                    conn.execute(
+                        """INSERT INTO employees (tab_num, total, extra_json)
+                           VALUES (?, ?, json_object('experience_period', ?))""",
+                        (tab_num, total_exp, exp_period if exp_period else "")
+                    )
+                    updated_count += 1
+        
+        log_action("load_total_experience", os.path.basename(file_path), updated_count, "ok")
+        return True, f"Обновлен стаж для {updated_count} сотрудников", updated_count
+
+    except Exception as e:
+        logger.exception("Error loading total experience")
+        log_action("load_total_experience", os.path.basename(file_path), 0, "error", str(e))
+        return False, f"Ошибка загрузки стажа: {e}", 0
 
 
 def load_daily_tracking_files(folder_path: str, track_date: str) -> Tuple[bool, str, int]:
