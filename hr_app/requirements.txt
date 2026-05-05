@@ -15,6 +15,8 @@ numpy==1.26.4
 # PDF & OCR
 pdfplumber==0.11.1
 PyPDF2==3.0.1
+pytesseract==0.3.13
+Pillow==11.0.0
 
 # Utils
 python-dotenv==1.0.1
