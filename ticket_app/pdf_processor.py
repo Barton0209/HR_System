@@ -67,10 +67,78 @@ _FIO_EXCLUDE = {
 }
 
 
+def _deskew(img: np.ndarray) -> Tuple[np.ndarray, float]:
+    """Коррекция перекоса через преобразование Хафа."""
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape) == 3 else img
+    edges = cv2.Canny(gray, 50, 150)
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, threshold=100)
+    if lines is not None and len(lines) > 3:
+        angles = []
+        for line in lines[:20]:
+            rho, theta = line[0]
+            angle = np.degrees(theta) - 90
+            if -45 < angle < 45:
+                angles.append(angle)
+        if angles:
+            median_angle = float(np.median(angles))
+            if abs(median_angle) > 0.5:
+                h, w = img.shape[:2]
+                M = cv2.getRotationMatrix2D((w // 2, h // 2), median_angle, 1.0)
+                img = cv2.warpAffine(img, M, (w, h),
+                                     flags=cv2.INTER_CUBIC,
+                                     borderMode=cv2.BORDER_REPLICATE)
+                return img, median_angle
+    return img, 0.0
+
+
+def _remove_moire(img: np.ndarray) -> np.ndarray:
+    """Подавление муара через FFT-фильтрацию."""
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape) == 3 else img
+    dft = np.fft.fftshift(np.fft.fft2(gray))
+    magnitude = np.log(np.abs(dft) + 1)
+    h, w = magnitude.shape
+    cy, cx = h // 2, w // 2
+    y, x = np.ogrid[:h, :w]
+    dist = np.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+    lo, hi = int(min(h, w) * 0.05), int(min(h, w) * 0.15)
+    moire_band = (dist > lo) & (dist < hi)
+    if magnitude[moire_band].mean() > magnitude.mean() * 2.5:
+        mask = np.ones_like(dft, dtype=np.float32)
+        mask[moire_band] = 0.3
+        result = np.real(np.fft.ifft2(np.fft.ifftshift(dft * mask))).astype(np.uint8)
+        result = cv2.bilateralFilter(result, 5, 30, 30)
+        return cv2.cvtColor(result, cv2.COLOR_GRAY2RGB) if len(img.shape) == 3 else result
+    return img
+
+
+def _sharpen_text(img: np.ndarray) -> np.ndarray:
+    """Избирательное повышение резкости текстовых областей."""
+    kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape) == 3 else img
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, text_mask = cv2.threshold(cv2.subtract(gray, blur), 15, 255, cv2.THRESH_BINARY)
+    text_mask = cv2.dilate(text_mask, np.ones((2, 2), np.uint8)) / 255.0
+    sharpened = cv2.filter2D(img, -1, kernel)
+    if len(img.shape) == 3:
+        m = cv2.cvtColor(text_mask.astype(np.float32), cv2.COLOR_GRAY2RGB) * 0.3
+        return np.clip(img * (1 - m) + sharpened * m, 0, 255).astype(np.uint8)
+    return np.clip(img * (1 - text_mask * 0.3) + sharpened * (text_mask * 0.3), 0, 255).astype(np.uint8)
+
+
 def _preprocess(img_array: np.ndarray) -> np.ndarray:
-    gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    gray = clahe.apply(gray)
+    """Полный пайплайн предобработки: deskew → moire → CLAHE → sharpen → binarize."""
+    img, _ = _deskew(img_array)
+    img = _remove_moire(img)
+    # CLAHE на L-канал (LAB)
+    if len(img.shape) == 3:
+        lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+        l, a, b = cv2.split(lab)
+        l = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(l)
+        img = cv2.cvtColor(cv2.merge([l, a, b]), cv2.COLOR_LAB2RGB)
+    else:
+        img = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(img)
+    img = _sharpen_text(img)
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY) if len(img.shape) == 3 else img
     gray = cv2.medianBlur(gray, 3)
     _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return binary
@@ -268,6 +336,14 @@ def process_pdf_file(pdf_path: str) -> List[Dict]:
             result = process_pdf_page(text, filename)
             if result:
                 result["page_num"] = i + 1
+                # MRZ-экстракция
+                mrz = extract_mrz(text)
+                if mrz:
+                    result['mrz'] = mrz
+                    if not result.get('doc_series') and mrz.get('doc_num'):
+                        result['doc_num'] = mrz['doc_num']
+                    if not result.get('birth_date') and mrz.get('dob'):
+                        result['birth_date'] = mrz['dob']
                 results.append(result)
                 logger.info("Стр. %d: %s", i + 1, result["fio"])
         doc.close()
@@ -287,3 +363,153 @@ def process_pdf_folder(folder_path: str, progress_callback=None) -> List[Dict]:
     if progress_callback:
         progress_callback(total, total, "Готово!")
     return all_results
+
+
+# ---------------------------------------------------------------------------
+# MRZ-экстрактор (паспорта 23 стран, ICAO TD3/TD1)
+# ---------------------------------------------------------------------------
+
+MRZ_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<")
+_MRZ_REPLACEMENTS = {
+    ' ': '<', '«': '<', '»': '<', '[': '<', ']': '<', '{': '<', '}': '<',
+    'О': '0', 'В': '8', 'З': '3', 'Б': '6',
+}
+
+# Веса для контрольной цифры ICAO
+_ICAO_WEIGHTS = [7, 3, 1]
+_ICAO_MAP = {c: i for i, c in enumerate('0123456789')}
+_ICAO_MAP.update({c: 10 + i for i, c in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ')})
+_ICAO_MAP['<'] = 0
+
+
+def _icao_check(data: str, digit: str) -> bool:
+    """Проверка контрольной цифры ICAO."""
+    try:
+        total = sum(_ICAO_MAP.get(c, 0) * _ICAO_WEIGHTS[i % 3] for i, c in enumerate(data))
+        return str(total % 10) == digit
+    except Exception:
+        return False
+
+
+def _clean_mrz(text: str) -> str:
+    result = []
+    for c in text.upper():
+        if c in MRZ_CHARS:
+            result.append(c)
+        elif c in _MRZ_REPLACEMENTS:
+            result.append(_MRZ_REPLACEMENTS[c])
+    return ''.join(result)
+
+
+def _looks_like_mrz(text: str) -> bool:
+    upper = sum(1 for c in text if c.isupper() or c.isdigit() or c == '<')
+    return upper / max(len(text), 1) > 0.7 and len(text) > 15
+
+
+def _parse_td3(line1: str, line2: str) -> Dict:
+    """Парсинг TD3 MRZ (паспорт, 2×44)."""
+    l1 = line1.ljust(44, '<')[:44]
+    l2 = line2.ljust(44, '<')[:44]
+
+    # Строка 1: тип, страна, ФИО
+    doc_type = l1[0:2].strip('<')
+    country = l1[2:5].strip('<')
+    name_field = l1[5:44]
+    parts = name_field.split('<<', 1)
+    surname = parts[0].replace('<', ' ').strip()
+    given = parts[1].replace('<', ' ').strip() if len(parts) > 1 else ''
+
+    # Строка 2: номер, дата рождения, пол, срок, личный номер
+    doc_num = l2[0:9].strip('<')
+    check1 = l2[9]
+    dob_raw = l2[13:19]
+    check2 = l2[19]
+    sex = l2[20]
+    expiry_raw = l2[21:27]
+    check3 = l2[27]
+
+    def _fmt_date(d: str) -> str:
+        if len(d) != 6:
+            return ''
+        yy, mm, dd = d[0:2], d[2:4], d[4:6]
+        year = (2000 + int(yy)) if int(yy) <= 30 else (1900 + int(yy))
+        return f"{dd}.{mm}.{year}"
+
+    valid_num = _icao_check(l2[0:9], check1)
+    valid_dob = _icao_check(dob_raw, check2)
+    valid_exp = _icao_check(expiry_raw, check3)
+    confidence = sum([valid_num, valid_dob, valid_exp]) / 3
+
+    return {
+        'mrz_type': 'TD3',
+        'doc_type': doc_type,
+        'country': country,
+        'surname': surname,
+        'given_names': given,
+        'doc_num': doc_num,
+        'dob': _fmt_date(dob_raw),
+        'sex': sex if sex in ('M', 'F') else '',
+        'expiry': _fmt_date(expiry_raw),
+        'mrz_valid': confidence >= 0.67,
+        'mrz_confidence': round(confidence, 2),
+    }
+
+
+def extract_mrz(text: str) -> Optional[Dict]:
+    """
+    Извлечение MRZ из текста страницы.
+    Возвращает словарь с данными или None если MRZ не найден.
+    """
+    lines = [_clean_mrz(l.strip()) for l in text.splitlines() if l.strip()]
+    mrz_lines = [l for l in lines if _looks_like_mrz(l) and len(l) >= 20]
+
+    if len(mrz_lines) < 2:
+        return None
+
+    # Ищем пару строк длиной ~44 (TD3)
+    for i in range(len(mrz_lines) - 1):
+        l1, l2 = mrz_lines[i], mrz_lines[i + 1]
+        if len(l1) >= 40 and len(l2) >= 40:
+            result = _parse_td3(l1, l2)
+            if result['mrz_confidence'] > 0:
+                logger.info("MRZ найден: %s %s (уверенность %.0f%%)",
+                            result['surname'], result['given_names'],
+                            result['mrz_confidence'] * 100)
+                return result
+
+    return None
+
+
+def process_image_file(image_path: str) -> List[Dict]:
+    """
+    Обработка одиночного изображения (JPEG/PNG) как страницы документа.
+    Используется для сканов паспортов и других документов.
+    """
+    filename = os.path.basename(image_path)
+    results = []
+    try:
+        from PIL import Image as PILImage
+        pil_img = PILImage.open(image_path).convert('RGB')
+        img_array = np.array(pil_img)
+        binary = _preprocess(img_array)
+        if not TESSERACT_AVAILABLE:
+            logger.warning("Tesseract недоступен, OCR изображения невозможен")
+            return results
+        import pytesseract
+        text = pytesseract.image_to_string(
+            PILImage.fromarray(binary), lang='rus+eng', config='--psm 6 --oem 3')
+        result = process_pdf_page(text, filename)
+        if result:
+            result['page_num'] = 1
+            # Пробуем извлечь MRZ
+            mrz = extract_mrz(text)
+            if mrz:
+                result['mrz'] = mrz
+                if not result.get('doc_series') and mrz.get('doc_num'):
+                    result['doc_num'] = mrz['doc_num']
+                if not result.get('birth_date') and mrz.get('dob'):
+                    result['birth_date'] = mrz['dob']
+            results.append(result)
+    except Exception as e:
+        logger.error("Ошибка обработки изображения %s: %s", image_path, e)
+    return results

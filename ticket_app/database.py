@@ -56,36 +56,151 @@ def get_all_employees() -> List[Dict]:
     return _EMPLOYEES_DB.to_dict('records') if _EMPLOYEES_DB is not None else []
 
 
+# Дополнительные данные из Базы
+_PASSWORDS_DB: List[Dict] = []       # лист ПАРОЛЬ
+_ROUTES_DB: List[Dict] = []          # лист МАРШРУТ
+_RESPONSIBLE_DB: List[Dict] = []     # лист ОТВЕТСТВЕННЫЙ
+
+
+def get_passwords_db() -> List[Dict]:
+    return _PASSWORDS_DB
+
+
+def get_routes_for_department(department: str) -> List[str]:
+    """Возвращает маршруты для подразделения (приоритетные + общие)."""
+    priority, general = [], []
+    for row in _ROUTES_DB:
+        dept = row.get('department', '')
+        route = row.get('route', '')
+        if not route:
+            continue
+        if dept and dept.strip().lower() in department.lower():
+            priority.append(route)
+        else:
+            general.append(route)
+    # приоритетные маршруты сверху, затем общие без дублей
+    seen = set(priority)
+    result = list(priority)
+    for r in general:
+        if r not in seen:
+            result.append(r)
+            seen.add(r)
+    return result
+
+
+def get_transfer_city_for_route(route: str, department: str) -> str:
+    """Возвращает город пересадки для маршрута из листа МАРШРУТ."""
+    for row in _ROUTES_DB:
+        dept = row.get('department', '')
+        if dept and dept.strip().lower() not in department.lower():
+            continue
+        if row.get('route', '') == route:
+            return row.get('transfer', '')
+    return ''
+
+
+def get_responsible_for_department(department: str) -> List[str]:
+    """Возвращает список ответственных для подразделения."""
+    result = []
+    for row in _RESPONSIBLE_DB:
+        dept = row.get('department', '')
+        if dept and dept.strip().lower() in department.lower():
+            name = row.get('responsible', '')
+            if name and name not in result:
+                result.append(name)
+    return result
+
+
+def get_responsible_info(responsible_name: str, department: str) -> Dict:
+    """Возвращает ФИО, должность, отдел ответственного."""
+    for row in _RESPONSIBLE_DB:
+        dept = row.get('department', '')
+        if dept and dept.strip().lower() not in department.lower():
+            continue
+        if row.get('responsible', '') == responsible_name:
+            return {
+                'fio': row.get('fio', ''),
+                'position': row.get('position', ''),
+                'dept_category': row.get('dept_category', ''),
+            }
+    return {}
+
+
 def load_employees_base(file_path: str) -> Tuple[bool, str, int]:
-    global _EMPLOYEES_DB
+    global _EMPLOYEES_DB, _PASSWORDS_DB, _ROUTES_DB, _RESPONSIBLE_DB
     if not os.path.exists(file_path):
         return False, f"Файл не найден: {file_path}", 0
     try:
         xl = pd.ExcelFile(file_path)
+
+        # --- Лист ПАРОЛЬ ---
+        if 'ПАРОЛЬ' in xl.sheet_names:
+            df_pwd = pd.read_excel(file_path, sheet_name='ПАРОЛЬ', header=0)
+            df_pwd.columns = df_pwd.columns.str.strip()
+            _PASSWORDS_DB = [
+                {
+                    'department': safe_str(r.iloc[0]),
+                    'password':   safe_str(r.iloc[1]),
+                    'access':     safe_str(r.iloc[2]) if len(r) > 2 else '',
+                }
+                for _, r in df_pwd.iterrows() if safe_str(r.iloc[0])
+            ]
+
+        # --- Лист МАРШРУТ ---
+        if 'МАРШРУТ' in xl.sheet_names:
+            df_rt = pd.read_excel(file_path, sheet_name='МАРШРУТ', header=0)
+            df_rt.columns = df_rt.columns.str.strip()
+            _ROUTES_DB = [
+                {
+                    'department': safe_str(r.iloc[0]),
+                    'route':      safe_str(r.iloc[1]),
+                    'transfer':   safe_str(r.iloc[2]) if len(r) > 2 else '',
+                }
+                for _, r in df_rt.iterrows() if safe_str(r.iloc[1])
+            ]
+
+        # --- Лист ОТВЕТСТВЕННЫЙ ---
+        if 'ОТВЕТСТВЕННЫЙ' in xl.sheet_names:
+            df_resp = pd.read_excel(file_path, sheet_name='ОТВЕТСТВЕННЫЙ', header=0)
+            df_resp.columns = df_resp.columns.str.strip()
+            _RESPONSIBLE_DB = [
+                {
+                    'department':    safe_str(r.iloc[0]),
+                    'responsible':   safe_str(r.iloc[1]),
+                    'fio':           safe_str(r.iloc[2]) if len(r) > 2 else '',
+                    'position':      safe_str(r.iloc[3]) if len(r) > 3 else '',
+                    'dept_category': safe_str(r.iloc[4]) if len(r) > 4 else '',
+                }
+                for _, r in df_resp.iterrows() if safe_str(r.iloc[0])
+            ]
+
+        # --- Лист ВСЕ ОП ---
         df = None
         used_sheet = None
         for sheet in ["ВСЕ ОП", "Sheet1", "Employees", "Сотрудники"]:
             if sheet in xl.sheet_names:
-                df = pd.read_excel(file_path, sheet_name=sheet)
+                df = pd.read_excel(file_path, sheet_name=sheet, header=0)
                 used_sheet = sheet
                 break
         if df is None:
-            df = pd.read_excel(file_path, sheet_name=0)
+            df = pd.read_excel(file_path, sheet_name=0, header=0)
             used_sheet = xl.sheet_names[0]
 
         df.columns = df.columns.str.strip()
+        cols = list(df.columns)
 
-        mapping = {}
+        # Маппинг по позиции столбца (J=9, O=14, индексация с 0)
+        # Приоритет: сначала по имени, потом по позиции
         col_map = {
-            'fio':                 ['ФИО', 'Ф.И.О.', 'FIO', 'фио'],
-            'tab_num':             ['Таб№', 'Табельный', 'tab_num', 'Табельный номер'],
-            'position':            ['Должность', 'Position'],
+            'fio':                 ['ФИО', 'Ф.И.О.', 'FIO', 'фио', 'ФИО сотрудника'],
+            'tab_num':             ['Табельный номер', 'Таб№', 'Таб.№', 'tab_num', 'Табельный'],
+            'position':            ['Должность', 'Position', 'Должность сотрудника'],
             'department':          ['Подразделение', 'Department'],
-            'department_category': ['Отдел', 'Отдел (СМУ, УМиТ, ОТиЗ)', 'department_category'],
+            'department_category': ['Отдел', 'Отдел (СМУ', 'department_category'],
             'citizenship':         ['Страна гражданства', 'Гражданство', 'Citizenship'],
-            'birth_date':          ['Дата рождения', 'BirthDate'],
-            'doc_series':          ['Серия', 'Series', 'Удостоверение.Серия'],
-            'doc_num':             ['Номер', 'Number', 'Удостоверение.Номер'],
+            'birth_date':          ['Дата рождения', 'BirthDate', 'Д.рождения'],
+            'doc_series':          ['Серия', 'Series', 'Серия документа', 'Удостоверение.Серия'],
+            'doc_num':             ['Номер документа', 'Номер паспорта', 'Number', 'Удостоверение.Номер'],
             'doc_date':            ['Дата выдачи', 'DocDate', 'Удостоверение.Дата выдачи'],
             'doc_expiry':          ['Дата окончания', 'Срок действия', 'doc_expiry'],
             'doc_issuer':          ['Кем выдан', 'Issuer', 'Удостоверение.Кем выдан'],
@@ -94,10 +209,23 @@ def load_employees_base(file_path: str) -> Tuple[bool, str, int]:
             'phone':               ['Телефон', 'Phone', 'Мобильный',
                                     'Физическое лицо.Личный мобильный телефон'],
         }
+
+        mapping = {}
         for field, candidates in col_map.items():
             col = _find_column(df, candidates)
             if col:
                 mapping[col] = field
+
+        # Позиционный fallback по индексу столбца (только если поле не найдено по имени)
+        # J=9 -> tab_num, O=14 -> doc_num  (индексация с 0)
+        mapped_fields = set(mapping.values())
+        COL_POS_FALLBACK = {9: 'tab_num', 14: 'doc_num'}
+        for pos, field in COL_POS_FALLBACK.items():
+            if field not in mapped_fields and pos < len(cols):
+                col_name = cols[pos]
+                if col_name not in mapping:
+                    mapping[col_name] = field
+                    logger.info("Позиционный fallback: столбец %s (%s) -> %s", pos, col_name, field)
 
         df = df.rename(columns=mapping)
         needed = [c for c in col_map.keys() if c in df.columns]

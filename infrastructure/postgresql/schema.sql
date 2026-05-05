@@ -112,6 +112,28 @@ CREATE TABLE IF NOT EXISTS idps.ticket_requests (
 CREATE INDEX IF NOT EXISTS idx_tickets_dept ON idps.ticket_requests (department);
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON idps.ticket_requests (status);
 
+-- 8. Passport Data (результаты обработки паспортов через веб-сервис)
+CREATE TABLE IF NOT EXISTS idps.passport_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES idps.documents(id) ON DELETE CASCADE,
+    fio VARCHAR(255),
+    birth_date VARCHAR(20),
+    citizenship VARCHAR(100),
+    doc_type VARCHAR(50),
+    doc_series VARCHAR(20),
+    doc_number VARCHAR(50),
+    issue_date VARCHAR(20),
+    expiry_date VARCHAR(20),
+    issuer TEXT,
+    address TEXT,
+    phone VARCHAR(50),
+    snils VARCHAR(20),
+    raw_nlp JSONB,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_passport_fio ON idps.passport_data (fio);
+CREATE INDEX IF NOT EXISTS idx_passport_doc_num ON idps.passport_data (doc_number);
+
 -- 7. Audit Log
 CREATE TABLE IF NOT EXISTS idps.audit_log (
     id BIGSERIAL PRIMARY KEY,

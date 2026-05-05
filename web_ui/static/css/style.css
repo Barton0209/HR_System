@@ -1,0 +1,155 @@
+/* web_ui/static/css/style.css */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:   #217346;
+  --green-d: #1a5c38;
+  --blue:    #0070C0;
+  --red:     #C00000;
+  --bg:      #f4f6f8;
+  --card:    #ffffff;
+  --border:  #d0d7de;
+  --text:    #1a1a2e;
+  --muted:   #6e7781;
+  --radius:  8px;
+  --shadow:  0 2px 8px rgba(0,0,0,.10);
+}
+
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg);
+       color: var(--text); font-size: 14px; }
+
+/* ── Header ─────────────────────────────────────────────────────── */
+header { background: var(--green); color: #fff; padding: 0 24px;
+         box-shadow: 0 2px 6px rgba(0,0,0,.25); position: sticky; top: 0; z-index: 100; }
+.header-inner { display: flex; align-items: center; gap: 24px; height: 52px; }
+.logo { font-size: 20px; font-weight: 700; letter-spacing: .5px; }
+.logo span { font-size: 12px; opacity: .7; font-weight: 400; }
+nav { display: flex; gap: 4px; flex: 1; }
+.nav-link { color: rgba(255,255,255,.8); text-decoration: none; padding: 6px 14px;
+            border-radius: 4px; transition: background .15s; font-size: 13px; }
+.nav-link:hover, .nav-link.active { background: rgba(255,255,255,.18); color: #fff; }
+.header-status { font-size: 12px; opacity: .85; white-space: nowrap; }
+
+/* ── Main ────────────────────────────────────────────────────────── */
+main { max-width: 1100px; margin: 24px auto; padding: 0 16px;
+       display: flex; flex-direction: column; gap: 20px; }
+
+/* ── Card ────────────────────────────────────────────────────────── */
+.card { background: var(--card); border: 1px solid var(--border);
+        border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.card h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; color: var(--green); }
+.hint { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+
+/* ── Drop Zone ───────────────────────────────────────────────────── */
+.drop-zone { border: 2px dashed var(--border); border-radius: var(--radius);
+             padding: 40px 20px; text-align: center; cursor: pointer;
+             transition: border-color .2s, background .2s; }
+.drop-zone:hover, .drop-zone.drag-over { border-color: var(--green); background: #f0f7f2; }
+.drop-icon { font-size: 40px; margin-bottom: 10px; }
+.drop-text { color: var(--muted); line-height: 1.6; }
+.drop-text span { color: var(--blue); text-decoration: underline; }
+.drop-zone.has-file { border-color: var(--green); background: #f0f7f2; }
+.drop-zone.has-file .drop-text { color: var(--green); font-weight: 600; }
+
+/* ── Upload Options ──────────────────────────────────────────────── */
+.upload-options { display: flex; gap: 16px; align-items: flex-end;
+                  flex-wrap: wrap; margin-top: 16px; }
+.upload-options label { display: flex; flex-direction: column; gap: 4px;
+                         font-size: 13px; color: var(--muted); }
+.upload-options select { padding: 7px 10px; border: 1px solid var(--border);
+                          border-radius: 5px; font-size: 13px; background: #fff; }
+
+/* ── Buttons ─────────────────────────────────────────────────────── */
+.btn { padding: 8px 20px; border: none; border-radius: 5px; cursor: pointer;
+       font-size: 13px; font-weight: 600; transition: opacity .15s, transform .1s; }
+.btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary  { background: var(--green); color: #fff; }
+.btn-success  { background: var(--blue);  color: #fff; }
+.btn-outline  { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-sm       { padding: 5px 12px; font-size: 12px; }
+.btn-danger   { background: var(--red); color: #fff; }
+
+/* ── Progress ────────────────────────────────────────────────────── */
+.progress-block { margin-top: 16px; }
+.progress-bar-wrap { background: #e8f0eb; border-radius: 20px; height: 8px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--green); border-radius: 20px;
+                width: 0; transition: width .4s ease; }
+.progress-text { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+/* ── Result ──────────────────────────────────────────────────────── */
+.result-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.result-header h2 { margin: 0; flex: 1; }
+.result-badges { display: flex; gap: 6px; }
+.badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-type { background: #dbeafe; color: #1d4ed8; }
+.badge-conf { background: #dcfce7; color: #166534; }
+
+.result-grid { margin-bottom: 20px; }
+.result-grid h3 { font-size: 14px; font-weight: 600; color: var(--green);
+                   margin-bottom: 12px; padding-bottom: 6px;
+                   border-bottom: 2px solid #e8f0eb; }
+
+.fields-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.field-item { background: #f8fafb; border: 1px solid var(--border);
+              border-radius: 6px; padding: 10px 12px; }
+.field-label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+               letter-spacing: .5px; margin-bottom: 4px; }
+.field-value { font-size: 14px; font-weight: 500; color: var(--text);
+               word-break: break-word; }
+.field-value.empty { color: #bbb; font-style: italic; font-weight: 400; }
+
+.ocr-details { margin-top: 16px; }
+.ocr-details summary { cursor: pointer; color: var(--muted); font-size: 13px;
+                         padding: 6px 0; user-select: none; }
+.ocr-details pre { background: #f6f8fa; border: 1px solid var(--border);
+                    border-radius: 6px; padding: 12px; font-size: 12px;
+                    max-height: 300px; overflow-y: auto; white-space: pre-wrap;
+                    word-break: break-word; margin-top: 8px; }
+
+.result-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+
+/* ── Documents Table ─────────────────────────────────────────────── */
+.section-header { display: flex; align-items: center; justify-content: space-between;
+                   margin-bottom: 14px; }
+.section-header h2 { margin: 0; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th { background: var(--green); color: #fff; padding: 9px 12px;
+           text-align: left; font-weight: 600; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid #eef0f2; transition: background .1s; }
+tbody tr:hover { background: #f0f7f2; }
+tbody tr:nth-child(even) { background: #fafbfc; }
+tbody tr:nth-child(even):hover { background: #f0f7f2; }
+td { padding: 8px 12px; vertical-align: middle; }
+.empty-row { text-align: center; color: var(--muted); padding: 24px; }
+
+/* Статусы */
+.status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px;
+                font-size: 11px; font-weight: 600; }
+.status-uploaded    { background: #fef9c3; color: #854d0e; }
+.status-ocr_completed { background: #dbeafe; color: #1e40af; }
+.status-finished    { background: #dcfce7; color: #166534; }
+.status-failed      { background: #fee2e2; color: #991b1b; }
+.status-preprocessed, .status-nlp_completed { background: #ede9fe; color: #5b21b6; }
+
+/* Тип документа */
+.doc-type { font-size: 11px; color: var(--muted); }
+
+/* ── Modal ───────────────────────────────────────────────────────── */
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.45);
+         display: flex; align-items: center; justify-content: center; z-index: 200; }
+.modal.hidden { display: none; }
+.modal-box { background: #fff; border-radius: var(--radius); width: 90%; max-width: 720px;
+              max-height: 85vh; display: flex; flex-direction: column;
+              box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+.modal-header { display: flex; align-items: center; justify-content: space-between;
+                 padding: 14px 20px; border-bottom: 1px solid var(--border);
+                 font-weight: 600; font-size: 15px; }
+.modal-close { background: none; border: none; font-size: 18px; cursor: pointer;
+               color: var(--muted); line-height: 1; }
+.modal-close:hover { color: var(--red); }
+.modal-body { padding: 20px; overflow-y: auto; }
+
+/* ── Helpers ─────────────────────────────────────────────────────── */
+.hidden { display: none !important; }

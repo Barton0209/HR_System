@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IDPS — Обработка документов</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">📄 IDPS <span>v2.0</span></div>
+    <nav>
+      <a href="#upload"    class="nav-link active">Загрузить</a>
+      <a href="#documents" class="nav-link">Документы</a>
+      <a href="/api/docs"  class="nav-link" target="_blank">API</a>
+    </nav>
+    <div class="header-status" id="svcStatus">⏳ Проверка сервисов...</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── Загрузка ─────────────────────────────────────────────────── -->
+  <section id="upload" class="card">
+    <h2>Загрузить документ</h2>
+    <p class="hint">Поддерживаются: PDF, PNG, JPG, TIFF — паспорта, заявки, договоры, счета</p>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">📂</div>
+      <div class="drop-text">Перетащите файл сюда<br><span>или нажмите для выбора</span></div>
+      <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" hidden>
+    </div>
+
+    <div class="upload-options">
+      <label>
+        Язык OCR:
+        <select id="langSelect">
+          <option value="rus+eng" selected>Русский + English</option>
+          <option value="rus">Только русский</option>
+          <option value="eng">Только English</option>
+        </select>
+      </label>
+      <label>
+        Тип документа:
+        <select id="docTypeSelect">
+          <option value="">Определить автоматически</option>
+          <option value="passport_ru">Паспорт РФ</option>
+          <option value="passport_foreign">Иностранный паспорт</option>
+          <option value="ticket_request">Заявка на билеты</option>
+          <option value="invoice">Счёт / Акт</option>
+          <option value="contract">Договор</option>
+        </select>
+      </label>
+      <button id="uploadBtn" class="btn btn-primary" disabled>⬆ Загрузить и обработать</button>
+    </div>
+
+    <!-- Прогресс -->
+    <div id="progressBlock" class="progress-block hidden">
+      <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-text" id="progressText">Загрузка...</div>
+    </div>
+  </section>
+
+  <!-- ── Результат ─────────────────────────────────────────────────── -->
+  <section id="resultSection" class="card hidden">
+    <div class="result-header">
+      <h2>Результат обработки</h2>
+      <div class="result-badges">
+        <span class="badge badge-type" id="badgeType">—</span>
+        <span class="badge badge-conf" id="badgeConf">—</span>
+      </div>
+      <button class="btn btn-sm" id="copyJsonBtn">📋 Копировать JSON</button>
+    </div>
+
+    <!-- Паспорт -->
+    <div id="passportResult" class="result-grid hidden">
+      <h3>📘 Данные паспорта</h3>
+      <div class="fields-grid" id="passportFields"></div>
+    </div>
+
+    <!-- Заявка на билеты -->
+    <div id="ticketResult" class="result-grid hidden">
+      <h3>✈ Данные заявки на билеты</h3>
+      <div class="fields-grid" id="ticketFields"></div>
+    </div>
+
+    <!-- Общий результат -->
+    <div id="genericResult" class="result-grid hidden">
+      <h3>📋 Извлечённые данные</h3>
+      <div class="fields-grid" id="genericFields"></div>
+    </div>
+
+    <!-- Исходный текст OCR -->
+    <details class="ocr-details">
+      <summary>🔍 Исходный текст OCR</summary>
+      <pre id="ocrText"></pre>
+    </details>
+
+    <div class="result-actions">
+      <button class="btn btn-success" id="exportCsvBtn">⬇ Скачать CSV</button>
+      <button class="btn btn-outline" id="newDocBtn">+ Новый документ</button>
+    </div>
+  </section>
+
+  <!-- ── Список документов ─────────────────────────────────────────── -->
+  <section id="documents" class="card">
+    <div class="section-header">
+      <h2>Обработанные документы</h2>
+      <button class="btn btn-sm" id="refreshBtn">🔄 Обновить</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="docsTable">
+        <thead>
+          <tr>
+            <th>Файл</th>
+            <th>Тип</th>
+            <th>Статус</th>
+            <th>Загружен</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="docsBody">
+          <tr><td colspan="5" class="empty-row">Нет документов</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── Модальное окно деталей ─────────────────────────────────────── -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="modalTitle">Детали документа</span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

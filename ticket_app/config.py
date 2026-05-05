@@ -12,31 +12,33 @@ def _hash(password: str) -> str:
 
 
 _OP_ENV_MAP = {
-    "ОП А-НПС-4А":                "OP_A_NPS_4A",
-    "ОП Астрахань":                "OP_ASTRAKHAN",
-    "ОП Большой Камень":           "OP_BOLSHOY_KAMEN",
-    "ОП Винный город":             "OP_VINNY_GOROD",
-    "ОП Гыдан":                    "OP_GYDAN",
-    "ОП Дивноморское":             "OP_DIVNOMORSKOE",
-    "ОП Диксон":                   "OP_DIKSON",
-    "ОП Карелия":                  "OP_KARELIYA",
-    "ОП Кингисепп":                "OP_KINGISEPP",
-    "ОП Криница":                  "OP_KRINITSA",
-    "ОП КС-7 Сивакинская":         "OP_KS7_SIVAKINSKAYA",
-    "ОП Кутузовский":              "OP_KUTUZOVSKIY",
-    "ОП Москва-Сити":              "OP_MOSKVA_SITI",
-    "ОП Мурманск":                 "OP_MURMANSK",
-    "ОП Новый Уренгой":            "OP_NOVYY_URENGOY",
-    "ОП Норильск":                 "OP_NORILSK",
-    "ОП ОП АМУР":                  "OP_AMUR",
-    "ОП ОП Кингисепп 2. ЕвроХим":  "OP_KINGISEPP2_EVROKHIM",
-    "ОП РП Новороссийск":          "OP_RP_NOVOROSSIYSK",
-    "ОП Сахалин":                  "OP_SAKHALIN",
-    "ОП СВОБОДНЫЙ":                "OP_SVOBODNYY",
-    "ОП Сочи":                     "OP_SOCHI",
-    "ОП Сочи 2":                   "OP_SOCHI2",
-    "ОП Тарко-Сале":               "OP_TARKO_SALE",
-    "ОП Усть-Луга":                "OP_UST_LUGA",
+    "Центральный офис":            "OP_CENTRAL",
+    "ОП А-НПС-4А":                 "OP_A_NPS_4A",
+    "ОП Астрахань":                 "OP_ASTRAKHAN",
+    "ОП Большой Камень":            "OP_BOLSHOY_KAMEN",
+    "ОП Винный город":              "OP_VINNY_GOROD",
+    "ОП Дивноморское":              "OP_DIVNOMORSKOE",
+    "ОП Криница":                   "OP_KRINITSA",
+    "ОП Марина":                    "OP_MARINA",
+    "ОП Диксон":                    "OP_DIKSON",
+    "ОП Норильск":                  "OP_NORILSK",
+    "ОП Кингисепп":                 "OP_KINGISEPP",
+    "ОП Карелия":                   "OP_KARELIYA",
+    "ОП Усть-Луга":                 "OP_UST_LUGA",
+    "ОП Гыдан":                     "OP_GYDAN",
+    "ОП Мурманск":                  "OP_MURMANSK",
+    "ОП КС-7 Сивакинская":          "OP_KS7_SIVAKINSKAYA",
+    "ОП Кутузовский":               "OP_KUTUZOVSKIY",
+    "ОП Москва-Сити":               "OP_MOSKVA_SITI",
+    "ОП Новый Уренгой":             "OP_NOVYY_URENGOY",
+    "ОП Тарко-Сале":                "OP_TARKO_SALE",
+    "ОП АМУР":                      "OP_AMUR",
+    "ОП СВОБОДНЫЙ":                 "OP_SVOBODNYY",
+    "ОП Кингисепп 2. ЕвроХим":      "OP_KINGISEPP2_EVROKHIM",
+    "ОП РП Новороссийск":           "OP_RP_NOVOROSSIYSK",
+    "ОП Сахалин":                   "OP_SAKHALIN",
+    "ОП Сочи":                      "OP_SOCHI",
+    "ОП Сочи 2":                    "OP_SOCHI2",
 }
 
 USERS_HASHED: dict[str, str] = {
@@ -47,9 +49,37 @@ USERS_HASHED: dict[str, str] = {
 
 ADMIN_PASSWORD_HASH = _hash(os.getenv("ADMIN_PASSWORD", ""))
 
+# Доступные подразделения для фильтрации Базы.
+# Пустой список = полный доступ без загрузки Базы (Центральный офис).
+# None = доступ только к своему ОП (по умолчанию).
+OP_ACCESS_MAP: dict[str, list[str]] = {
+    "Центральный офис":        [],
+    "ОП Новый Уренгой":        ["ОП Новый Уренгой", "ОП Тарко-Сале"],
+    "ОП Тарко-Сале":           ["ОП Новый Уренгой", "ОП Тарко-Сале"],
+    "ОП АМУР":                 ["ОП АМУР", "ОП СВОБОДНЫЙ"],
+    "ОП СВОБОДНЫЙ":            ["ОП АМУР", "ОП СВОБОДНЫЙ"],
+    "ОП Дивноморское":         ["ОП Дивноморское", "ОП Криница", "ОП Марина"],
+    "ОП Криница":              ["ОП Дивноморское", "ОП Криница", "ОП Марина"],
+    "ОП Марина":               ["ОП Дивноморское", "ОП Криница", "ОП Марина"],
+    "ОП Диксон":               ["ОП Диксон", "ОП Норильск"],
+    "ОП Норильск":             ["ОП Диксон", "ОП Норильск"],
+    "ОП Карелия":              ["ОП Карелия", "ОП Усть-Луга"],
+    "ОП Усть-Луга":            ["ОП Карелия", "ОП Усть-Луга"],
+    "ОП Гыдан":                ["ОП Гыдан", "ОП Мурманск"],
+    "ОП Мурманск":             ["ОП Гыдан", "ОП Мурманск"],
+}
+
+
+def get_allowed_departments(department: str) -> list[str]:
+    """Возвращает список ОП, доступных для просмотра при данной авторизации."""
+    if department in ("Admin", "Центральный офис"):
+        return []  # полный доступ
+    return OP_ACCESS_MAP.get(department, [department])
+
+
 TESSERACT_PATH = os.getenv(
     "TESSERACT_PATH",
-    r"C:\Users\DerevyankoGA\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 )
 
 ALL_COLUMNS = [

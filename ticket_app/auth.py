@@ -2,7 +2,7 @@
 import hashlib
 import tkinter as tk
 from tkinter import ttk, messagebox
-from config import USERS_HASHED, ADMIN_PASSWORD_HASH
+from ticket_app.config import USERS_HASHED, ADMIN_PASSWORD_HASH
 
 
 def _hash(password: str) -> str:

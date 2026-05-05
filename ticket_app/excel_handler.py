@@ -20,6 +20,29 @@ try:
 except ImportError:
     pass
 
+from openpyxl.chart import PieChart, Reference, LineChart, BarChart
+from openpyxl.chart.label import DataLabelList
+
+def add_pivot_charts_to_excel(df: pd.DataFrame, output_path: str):
+    wb = load_workbook(output_path)
+    ws = wb.active
+
+    # Пример: отчёт по гражданству
+    citizenship_counts = df['Гражданство'].value_counts()
+    start_row = len(df) + 5
+
+    # Пи-чарт
+    chart = PieChart()
+    chart.title = "Гражданство сотрудников"
+    chart.style = 10
+    data = Reference(ws, min_col=11, min_row=start_row, max_row=start_row+len(citizenship_counts)-1) # колонка Гражданство
+    cats = Reference(ws, min_col=10, min_row=start_row, max_row=start_row+len(citizenship_counts)-1)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(cats)
+    ws.add_chart(chart, f"A{start_row}")
+
+    # Сохранить
+    wb.save(output_path)
 
 def format_date_ddmmyyyy(date_val) -> str:
     if not date_val or str(date_val).strip() in ("", "nan", "None"):
@@ -110,7 +133,11 @@ def get_document_type(citizenship: str, doc_series: str) -> str:
 
 
 def create_application_row(row_num: int, department: str, pdf_data: Dict,
-                           employee: Dict = None) -> Dict:
+                           employee: Dict = None, leg: Dict = None) -> Dict:
+    """
+    leg — один сегмент маршрута: {'route': ..., 'date': ..., 'reason': ...}
+    Если leg не передан — берём данные из pdf_data (обратная совместимость).
+    """
     emp = employee or {}
     citizenship = emp.get('citizenship', '')
     doc_series = emp.get('doc_series', '')
@@ -121,6 +148,10 @@ def create_application_row(row_num: int, department: str, pdf_data: Dict,
         calculate_passport_expiry(doc_date, citizenship)
 
     phone = pdf_data.get('phone', '') or emp.get('phone', '')
+
+    route   = (leg or pdf_data).get('route', '')
+    reason  = (leg or pdf_data).get('reason', '') or pdf_data.get('reason', '')
+    date    = (leg or pdf_data).get('date', '') or pdf_data.get('date', '')
 
     return {
         "№": row_num,
@@ -142,13 +173,13 @@ def create_application_row(row_num: int, department: str, pdf_data: Dict,
         "Дата окончания": expiry,
         "Кем выдан": emp.get('doc_issuer', ''),
         "Адрес": str(emp.get('address', '')),
-        "Маршрут": pdf_data.get('route', ''),
-        "Обоснование": pdf_data.get('reason', ''),
+        "Маршрут": route,
+        "Обоснование": reason,
         "ПС": "",
         "АВИА/ЖД": "АВИА",
-        "Дата вылета": format_date_ddmmyyyy(pdf_data.get('date', '')),
+        "Дата вылета": format_date_ddmmyyyy(date),
         "Примечание": "",
-        "Ответственный": "",
+        "Ответственный": pdf_data.get('responsible', ''),
         "Дата выписки": "",
         "Билет": "",
         "Сумма": "",
