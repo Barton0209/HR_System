@@ -1,37 +1,5 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-.eggs/
-
-# Виртуальное окружение
-venv/
-.venv/
-env/
-
-# Секреты — НИКОГДА не коммитить!
-.env
-*.key
-*.pem
-
-# Данные
-employees_database.json
-*.log
-/tmp/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# Docker
-.docker/
-
-# OS
-.DS_Store
-Thumbs.db
+```
+# Database files
+hr_app/data/hr_system.db-shm
+hr_app/data/hr_system.db-wal
+```

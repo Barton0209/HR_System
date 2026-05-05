@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from hr_app.backend.database import get_setting, set_setting, get_load_log, get_conn
-from hr_app.backend.services.excel_service import load_main_base, load_ticket_costs
+from hr_app.backend.services.excel_service import load_main_base, load_ticket_costs, load_total_experience
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -69,6 +69,22 @@ async def upload_routes(file: UploadFile = File(...)):
         return {"ok": True, "count": len(routes), "routes": routes[:20]}
     except Exception as e:
         raise HTTPException(500, str(e))
+
+
+@router.post("/upload-total-experience")
+async def upload_total_experience(file: UploadFile = File(...)):
+    """Загрузка ОБЩИЙ_СТАЖ.xlsx - отдельный расчет общего стажа"""
+    content = await file.read()
+    tmp_path = Path("data") / "uploads" / file.filename
+    tmp_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path.write_bytes(content)
+
+    ok, msg, count = load_total_experience(str(tmp_path))
+    if ok:
+        set_setting("total_experience_path", str(tmp_path))
+        set_setting("total_experience_name", file.filename)
+        set_setting("total_experience_rows", str(count))
+    return {"ok": ok, "message": msg, "count": count}
 
 
 @router.post("/reload-main-base")
