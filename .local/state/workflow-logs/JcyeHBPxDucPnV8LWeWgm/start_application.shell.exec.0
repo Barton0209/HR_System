@@ -1,0 +1,190 @@
+[32mINFO[0m:     Will watch for changes in these directories: ['/home/runner/workspace']
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:5000[0m (Press CTRL+C to quit)
+[32mINFO[0m:     Started reloader process [[36m[1m1823[0m] using [36m[1mWatchFiles[0m
+[32mINFO[0m:     Started server process [[36m1834[0m]
+[32mINFO[0m:     Waiting for application startup.
+2026-05-05 03:05:35,580 [INFO] hr_app.backend.database: Database initialized at /home/runner/workspace/hr_app/data/hr_system.db
+2026-05-05 03:05:35,580 [INFO] hr_app.backend.main: HR System started
+[32mINFO[0m:     Application startup complete.
+[32mINFO[0m:     127.0.0.1:44070 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mGET /api/dashboard/filters HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.2.37:0 - "[1mGET /api/dashboard/stats?status_op=ALL&platform=ALL HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57894 - "[1mGET /static/js/app.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57908 - "[1mGET /static/js/dashboard.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57880 - "[1mGET /static/css/style.css HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57922 - "[1mGET /static/js/employees.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57926 - "[1mGET /static/js/reports.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57938 - "[1mGET /static/js/tickets.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57908 - "[1mGET /static/js/ocr.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57880 - "[1mGET /static/js/settings.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57926 - "[1mGET /static/js/carnet.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57894 - "[1mGET /static/js/daily_tracking.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57922 - "[1mGET /static/js/utilities.js HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57908 - "[1mGET /favicon.ico HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57922 - "[1mGET /api/dashboard/filters HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:57880 - "[1mGET /api/dashboard/stats?status_op=ALL&platform=ALL HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:51714 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:51714 - "[1mGET /static/css/style.css HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:51714 - "[1mGET /static/js/app.js HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:51716 - "[1mGET /static/js/carnet.js HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:51730 - "[1mGET /favicon.ico HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:51716 - "[1mGET /api/dashboard/filters HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:51714 - "[1mGET /api/dashboard/stats?status_op=ALL&platform=ALL HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/dashboard/stats?status_op=ACTIVE&platform=ALL HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:56754 - "[1mGET / HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:56754 - "[1mGET /static/css/style.css HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:56766 - "[1mGET /static/js/carnet.js HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:56754 - "[1mGET /static/js/app.js HTTP/1.1[0m" [33m304 Not Modified[0m
+[32mINFO[0m:     127.0.0.1:56770 - "[1mGET /favicon.ico HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:56754 - "[1mGET /api/dashboard/filters HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     127.0.0.1:56766 - "[1mGET /api/dashboard/stats?status_op=ALL&platform=ALL HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/dashboard/stats?status_op=ACTIVE&platform=%D0%9E%D0%9F%20%D0%9A%D0%B8%D0%BD%D0%B3%D0%B8%D1%81%D0%B5%D0%BF%D0%BF-2.%D0%95%D0%B2%D1%80%D0%BE%D0%A5%D0%B8%D0%BC HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/dashboard/stats?status_op=ACTIVE&platform=%D0%9E%D0%9F%20%D0%9A%D0%B8%D0%BD%D0%B3%D0%B8%D1%81%D0%B5%D0%BF%D0%BF-2.%D0%95%D0%B2%D1%80%D0%BE%D0%A5%D0%B8%D0%BC HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/tickets/costs?limit=500 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/tickets/costs/summary HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mPOST /api/settings/upload-ticket-costs HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/tickets/costs?limit=500 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mGET /api/tickets/costs/summary HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mPOST /api/settings/upload-ticket-costs HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/tickets/costs?limit=500 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mPOST /api/settings/upload-ticket-costs HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mGET /api/tickets/costs?limit=500 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.10.45:0 - "[1mGET /api/tickets/costs/summary HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/tickets/costs/summary HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.11.38:0 - "[1mGET /api/ocr/status HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.10.45:0 - "[1mGET /api/settings/load-log?limit=20 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mGET /api/settings/db-info HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.5.23:0 - "[1mGET /api/settings/load-log?limit=20 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mGET /api/dashboard/stats?status_op=ACTIVE&platform=%D0%9E%D0%9F%20%D0%9A%D0%B8%D0%BD%D0%B3%D0%B8%D1%81%D0%B5%D0%BF%D0%BF-2.%D0%95%D0%B2%D1%80%D0%BE%D0%A5%D0%B8%D0%BC HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mGET /api/dashboard/stats?status_op=ACTIVE&platform=%D0%9E%D0%9F%20%D0%9A%D0%B8%D0%BD%D0%B3%D0%B8%D1%81%D0%B5%D0%BF%D0%BF-2.%D0%95%D0%B2%D1%80%D0%BE%D0%A5%D0%B8%D0%BC HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mPOST /api/utilities/translit/export HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mPOST /api/utilities/translit/export HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mPOST /api/utilities/translit/export HTTP/1.1[0m" [32m200 OK[0m
+2026-05-05 03:48:08,717 [ERROR] hr_app.backend.services.ollama_service: Ollama OCR failed for /tmp/tmpgxrz4vy3.pdf
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/nix/store/6334pjf6w2q623rgvwi499qaiym1p6yv-python3-3.11.14/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/workspace/hr_app/backend/services/ollama_service.py", line 63, in ocr_image_with_ollama
+    resp = await client.post(
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/nix/store/6334pjf6w2q623rgvwi499qaiym1p6yv-python3-3.11.14/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+[32mINFO[0m:     10.84.0.25:0 - "[1mPOST /api/ocr/document HTTP/1.1[0m" [32m200 OK[0m
+2026-05-05 03:48:54,164 [ERROR] hr_app.backend.services.ollama_service: Ollama OCR failed for /tmp/tmpl8qj2ba2.jpg
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 394, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 101, in handle_async_request
+    raise exc
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_async/connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_backends/auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_backends/anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "/nix/store/6334pjf6w2q623rgvwi499qaiym1p6yv-python3-3.11.14/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: All connection attempts failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/workspace/hr_app/backend/services/ollama_service.py", line 63, in ocr_image_with_ollama
+    resp = await client.post(
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 393, in handle_async_request
+    with map_httpcore_exceptions():
+  File "/nix/store/6334pjf6w2q623rgvwi499qaiym1p6yv-python3-3.11.14/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: All connection attempts failed
+[32mINFO[0m:     10.84.0.25:0 - "[1mPOST /api/ocr/passport HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mGET /api/tickets/costs?limit=500 HTTP/1.1[0m" [32m200 OK[0m
+[32mINFO[0m:     10.84.0.25:0 - "[1mGET /api/tickets/costs/summary HTTP/1.1[0m" [32m200 OK[0m
