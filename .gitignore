@@ -1,5 +1,20 @@
 ```
-# Database files
-hr_app/data/hr_system.db-shm
-hr_app/data/hr_system.db-wal
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database
+hr_app/data/hr_system.db
+
+# Dependencies
+venv/
+.venv/
+.env
+.env.local
+*.env.*
+
+# Logs
+*.log
 ```

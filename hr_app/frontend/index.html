@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HR System — Система управления персоналом</title>
+<title>HR System v2.0 — Система управления персоналом</title>
 <link rel="stylesheet" href="/static/css/style.css">
+<!-- Handsontable для Excel-подобных таблиц -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css">
+<script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -237,25 +241,12 @@
         <div class="data-table-wrap">
           <div class="data-table-toolbar">
             <button class="btn btn-success btn-sm" onclick="Employees.exportExcel()">⬇️ Excel</button>
+            <button class="btn btn-primary btn-sm" onclick="Employees.saveChanges()">💾 Сохранить изменения</button>
             <button class="btn btn-secondary btn-sm" onclick="Employees.load()">🔄 Обновить</button>
             <div class="data-table-info" id="emp-info">—</div>
           </div>
-          <div class="dt-wrapper">
-            <table class="dt-table" id="emp-table">
-              <thead>
-                <tr>
-                  <th>Табном</th><th>ФИО</th><th>Гражданство</th><th>Дата рождения</th>
-                  <th>Должность</th><th>Подразделение</th><th>Площадка ЕЖУ</th>
-                  <th>Статус сотрудника</th><th>Статус ОП</th><th>Классификация</th>
-                  <th>График работы</th><th>Дата приёма</th><th>Дата увольнения</th>
-                  <th>Телефон</th><th>Организация</th>
-                </tr>
-              </thead>
-              <tbody id="emp-tbody">
-                <tr><td colspan="15" class="loading-overlay"><div class="spinner"></div> Загрузка...</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <!-- Handsontable контейнер -->
+          <div id="emp-hot-container" style="height: 600px; overflow: hidden;"></div>
           <div class="dt-pagination">
             <button class="pg-btn" id="emp-prev" onclick="Employees.prevPage()">← Назад</button>
             <div class="pg-info" id="emp-pg-info">—</div>
