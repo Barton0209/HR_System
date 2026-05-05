@@ -56,11 +56,14 @@ def export_orders(department: str = Query("")):
             yield from f
         os.unlink(tmp_path)
 
-    dept_label = department.replace(" ", "_") if department else "Все"
+    from urllib.parse import quote
+    dept_label = department.replace(" ", "_") if department else "Vse"
+    fname_ru = f"Заявка_{dept_label}.xlsx"
+    fname_enc = quote(fname_ru, safe="")
     return StreamingResponse(
         file_iter(),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f'attachment; filename="Заявка_{dept_label}.xlsx"'}
+        headers={"Content-Disposition": f"attachment; filename=\"ticket_export.xlsx\"; filename*=UTF-8''{fname_enc}"}
     )
 
 

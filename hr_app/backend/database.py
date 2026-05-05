@@ -442,15 +442,17 @@ def get_dashboard_stats(status_op_filter: str = "ALL", platform_filter: str = "A
             f"GROUP BY work_schedule ORDER BY cnt DESC LIMIT 15", params
         ).fetchall()
 
+        hire_cond = "AND hire_date!=''" if where else "WHERE hire_date!=''"
         hire_by_month = conn.execute(
             f"SELECT strftime('%Y-%m', hire_date) as ym, COUNT(*) as cnt "
-            f"FROM employees {where} WHERE hire_date!='' "
+            f"FROM employees {where} {hire_cond} "
             f"GROUP BY ym ORDER BY ym DESC LIMIT 24", params
         ).fetchall()
 
+        fire_cond = "AND fire_date!=''" if where else "WHERE fire_date!=''"
         fire_by_month = conn.execute(
             f"SELECT strftime('%Y-%m', fire_date) as ym, COUNT(*) as cnt "
-            f"FROM employees {where} WHERE fire_date!='' "
+            f"FROM employees {where} {fire_cond} "
             f"GROUP BY ym ORDER BY ym DESC LIMIT 24", params
         ).fetchall()
 
@@ -532,13 +534,15 @@ def report_hire_fire_dynamics(status_op_filter="ALL", platform_filter="ALL") -> 
     conds, params = _build_filter(status_op_filter, platform_filter)
     where = ("WHERE " + " AND ".join(conds)) if conds else ""
     with get_conn() as conn:
+        h_cond = "AND hire_date!=''" if where else "WHERE hire_date!=''"
         hire = conn.execute(
             f"SELECT strftime('%Y-%m', hire_date) as ym, COUNT(*) as cnt "
-            f"FROM employees {where} WHERE hire_date!='' GROUP BY ym ORDER BY ym", params
+            f"FROM employees {where} {h_cond} GROUP BY ym ORDER BY ym", params
         ).fetchall()
+        f_cond = "AND fire_date!=''" if where else "WHERE fire_date!=''"
         fire = conn.execute(
             f"SELECT strftime('%Y-%m', fire_date) as ym, COUNT(*) as cnt "
-            f"FROM employees {where} WHERE fire_date!='' GROUP BY ym ORDER BY ym", params
+            f"FROM employees {where} {f_cond} GROUP BY ym ORDER BY ym", params
         ).fetchall()
     return {
         "hire": [{"label": r[0], "value": r[1]} for r in hire],
@@ -561,7 +565,7 @@ def report_age_structure(status_op_filter="ALL", platform_filter="ALL") -> List[
                 END as age_group,
                 COUNT(*) as cnt
             FROM employees {where}
-            WHERE birth_date!='' AND length(birth_date)>=10
+            {"AND" if where else "WHERE"} birth_date!='' AND length(birth_date)>=10
             GROUP BY age_group ORDER BY age_group""", params
         ).fetchall()
     return [dict(r) for r in rows]

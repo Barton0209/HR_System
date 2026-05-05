@@ -595,6 +595,89 @@ select.form-input { cursor: pointer; }
 }
 [data-tip]:hover::after { opacity: 1; }
 
+/* ══ Карнет ─────────────────────────────────────────── */
+.carnet-toolbar {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 8px 12px; background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.carnet-layout {
+  display: flex; gap: 0;
+  height: calc(100vh - var(--header-h) - 50px);
+  overflow: hidden;
+}
+.carnet-left {
+  width: 280px; min-width: 200px; flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.carnet-right {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
+}
+.carnet-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 10px; font-size: 12px; font-weight: 600;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+.badge-count {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1px 8px; font-size: 11px;
+  color: var(--accent-blue);
+}
+.carnet-file-list {
+  flex: 1; overflow-y: auto; list-style: none; padding: 6px 0;
+}
+.carnet-empty {
+  padding: 16px 12px; color: var(--text-muted); font-size: 12px;
+}
+.carnet-file-item {
+  padding: 4px 8px;
+}
+.carnet-file-name {
+  font-size: 12px; font-weight: 600; color: var(--accent-blue);
+  padding: 4px 4px 2px;
+  word-break: break-all;
+}
+.carnet-sheet-item {
+  padding: 2px 4px 2px 16px;
+}
+.carnet-sheet-item.err { color: var(--accent-red); font-size: 11px; }
+.carnet-sheet-label {
+  display: flex; align-items: center; gap: 6px; font-size: 12px;
+  cursor: pointer; padding: 2px 0;
+}
+.carnet-sheet-label input[type=checkbox] { flex-shrink: 0; }
+.carnet-sheet-meta { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+.carnet-hrow-sel {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-primary); border-radius: 3px;
+  padding: 0 2px; font-size: 11px; width: 38px;
+}
+.carnet-table-wrap {
+  flex: 1; overflow: auto;
+}
+.carnet-map-table { width: 100%; }
+.carnet-row-hidden td { opacity: .55; }
+.carnet-target-input {
+  width: 100%; background: var(--bg-base);
+  border: 1px solid var(--border); border-radius: 3px;
+  color: var(--text-primary); padding: 2px 6px; font-size: 12px;
+}
+.carnet-target-input:focus { outline: none; border-color: var(--accent-blue); }
+.carnet-status-badge {
+  font-size: 11px; padding: 1px 6px; border-radius: 3px;
+}
+.carnet-status-badge.visible { background: #1a3a1a; color: var(--accent-green); }
+.carnet-status-badge.hidden  { background: #3a1a1a; color: var(--accent-red); }
+.carnet-log {
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary); font-size: 11px;
+  padding: 6px 10px; max-height: 90px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-word;
+}
+
 /* ── File list ───────────────────────────────────────── */
 .file-list { display: flex; flex-direction: column; gap: 4px; }
 .file-item {

@@ -129,6 +129,7 @@ const App = {
       case 'daily-tracking': DailyTracking.init(); break;
       case 'tickets-buy': Tickets.load(); break;
       case 'tickets-costs': TicketCosts.load(); break;
+      case 'carnet': Carnet.init(); break;
       case 'utilities': buildUtilitiesTab(); break;
       case 'settings': Settings.load(); break;
     }

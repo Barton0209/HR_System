@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 
 from hr_app.backend.database import init_db
 from hr_app.backend.routers import (
-    dashboard, employees, reports, tickets, daily_tracking, ocr, settings, utilities
+    dashboard, employees, reports, tickets, daily_tracking, ocr, settings, utilities, carnet
 )
 
 logging.basicConfig(
@@ -49,6 +49,7 @@ app.include_router(daily_tracking.router)
 app.include_router(ocr.router)
 app.include_router(settings.router)
 app.include_router(utilities.router)
+app.include_router(carnet.router)
 
 # Static files
 STATIC_DIR = Path(__file__).parent.parent / "frontend" / "static"

@@ -358,13 +358,14 @@ def load_ticket_costs(file_paths: List[str]) -> Tuple[bool, str, int]:
             rows = []
             for _, row in df.iterrows():
                 vals = [safe_str(v) for v in row.values]
-                rows.append(vals[:12] + [""] * max(0, 12 - len(vals)))
+                padded = (vals + [""] * 10)[:10]
+                rows.append(padded)
             with get_conn() as conn:
                 conn.executemany(
                     """INSERT INTO ticket_costs
                        (source_file,tab_num,fio,route,flight_date,ticket_num,amount,payment,org,department,note)
                        VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                    [(os.path.basename(fp), *r[:11]) for r in rows]
+                    [(os.path.basename(fp), *r) for r in rows]
                 )
             total_rows += len(rows)
         except Exception as e:
