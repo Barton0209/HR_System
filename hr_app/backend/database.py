@@ -645,3 +645,33 @@ def get_load_log(limit: int = 50) -> List[Dict]:
             "SELECT * FROM load_log ORDER BY id DESC LIMIT ?", (limit,)
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+def update_employee_field(emp_id: int, field: str, value: Any) -> bool:
+    """Обновляет одно поле сотрудника. Возвращает True при успехе."""
+    # whitelist разрешённых полей для обновления
+    allowed_fields = {
+        "tab_num", "fio", "citizenship", "birth_date", "doc_series", "doc_num",
+        "position", "grade", "department", "section", "section2", "work_schedule",
+        "hire_date", "fire_date", "status", "work_start_date", "birth_place",
+        "doc_issuer", "doc_issue_date", "address", "phone_home", "phone_mobile",
+        "phone_work", "total", "region_eju", "platform_eju", "position_eju",
+        "section_eju", "section2_eju", "visa_eju", "visa_type_eju", "visa_region_eju",
+        "visa_expire_eju", "shift_start_eju", "status_op", "subdivision_blt",
+        "classification", "dept_category", "doc_type", "org", "territory"
+    }
+    
+    if field not in allowed_fields and field != "id":
+        logger.warning(f"Попытка обновления недопустимого поля: {field}")
+        return False
+    
+    try:
+        with get_conn() as conn:
+            conn.execute(
+                f"UPDATE employees SET {field}=? WHERE id=?",
+                (value if value is not None else "", emp_id)
+            )
+        return True
+    except Exception as e:
+        logger.error(f"Ошибка обновления поля {field} для сотрудника {emp_id}: {e}")
+        return False

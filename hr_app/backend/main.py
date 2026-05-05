@@ -16,12 +16,16 @@ from hr_app.backend.routers import (
     dashboard, employees, reports, tickets, daily_tracking, ocr, settings, utilities, carnet
 )
 
+# Настройка логирования
+LOG_DIR = Path("data/logs")
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("data/hr_system.log", encoding="utf-8"),
+        logging.FileHandler(LOG_DIR / "hr_system.log", encoding="utf-8"),
     ]
 )
 logger = logging.getLogger(__name__)
@@ -29,15 +33,19 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="HR System API",
     description="Система управления персоналом",
-    version="1.0.0"
+    version="2.0.0"
 )
+
+# CORS - разрешаем только с localhost для безопасности
+# В production замените на конкретные домены
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # Routers
