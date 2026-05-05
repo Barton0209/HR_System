@@ -26,3 +26,13 @@ aiofiles>=23.0.0
 # ── База данных (опционально для локальной разработки) ─────────────
 # psycopg2-binary>=2.9.0
 # sqlalchemy>=2.0.0
+aiofiles
+fastapi
+fitz
+httpx
+openpyxl
+pandas
+pdfplumber
+PyPDF2
+python-multipart
+uvicorn[standard]

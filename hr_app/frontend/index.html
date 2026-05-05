@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HR System — Система управления персоналом</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="app">
+  <!-- ═══ SIDEBAR ═══ -->
+  <nav id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🏗️</div>
+      <div>
+        <div class="logo-text">HR System</div>
+        <div class="logo-sub">v1.0 — 2026</div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Главное</div>
+      <div class="nav-item active" data-tab="dashboard">
+        <span class="nav-icon">📊</span><span class="nav-text">Дашборд</span>
+      </div>
+      <div class="nav-item" data-tab="employees">
+        <span class="nav-icon">👥</span><span class="nav-text">Сотрудники</span>
+      </div>
+      <div class="nav-item" data-tab="reports">
+        <span class="nav-icon">📈</span><span class="nav-text">Отчёты</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Оперативный учёт</div>
+      <div class="nav-item" data-tab="daily-tracking">
+        <span class="nav-icon">📅</span><span class="nav-text">Ежедневный учёт</span>
+      </div>
+      <div class="nav-item" data-tab="carnet">
+        <span class="nav-icon">🪪</span><span class="nav-text">Карнет</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Билеты</div>
+      <div class="nav-item" data-tab="tickets-buy">
+        <span class="nav-icon">✈️</span><span class="nav-text">Покупка билетов</span>
+      </div>
+      <div class="nav-item" data-tab="tickets-costs">
+        <span class="nav-icon">💰</span><span class="nav-text">Затраты билеты</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Оценки</div>
+      <div class="nav-item" data-tab="eval-rop">
+        <span class="nav-icon">⭐</span><span class="nav-text">РОП</span>
+      </div>
+      <div class="nav-item" data-tab="eval-itr">
+        <span class="nav-icon">🎯</span><span class="nav-text">ИТР</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Инструменты</div>
+      <div class="nav-item" data-tab="ocr-passport">
+        <span class="nav-icon">🛂</span><span class="nav-text">Паспорт OCR</span>
+      </div>
+      <div class="nav-item" data-tab="ocr-docs">
+        <span class="nav-icon">🔍</span><span class="nav-text">Документы OCR</span>
+      </div>
+      <div class="nav-item" data-tab="utilities">
+        <span class="nav-icon">🔧</span><span class="nav-text">Утилиты</span>
+      </div>
+      <div class="nav-item" data-tab="settings">
+        <span class="nav-icon">⚙️</span><span class="nav-text">Настройки</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div id="main-area">
+
+    <!-- Header -->
+    <div id="header">
+      <div class="page-title" id="page-title">📊 Дашборд</div>
+      <div class="header-stats">
+        <div class="stat-chip">
+          <span class="s-val" id="hdr-total">—</span>
+          <span class="s-lbl">сотрудников</span>
+        </div>
+        <div class="stat-chip">
+          <span class="s-val" id="hdr-active" style="color:var(--accent-green)">—</span>
+          <span class="s-lbl">активных ОП</span>
+        </div>
+        <div class="stat-chip">
+          <span class="s-val" id="hdr-itr" style="color:var(--accent-purple)">—</span>
+          <span class="s-lbl">ИТР</span>
+        </div>
+        <div class="stat-chip">
+          <span class="s-val" id="hdr-foreign" style="color:var(--accent-orange)">—</span>
+          <span class="s-lbl">иностранцев</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter bar -->
+    <div id="filter-bar">
+      <!-- Mode tabs (dashboard) -->
+      <div class="mode-tabs" id="mode-tabs">
+        <button class="mode-tab active" data-mode="ALL">ВСЕ ОП</button>
+        <button class="mode-tab" data-mode="ACTIVE">Активные ОП</button>
+        <button class="mode-tab" data-mode="FINISHED">Завершённые</button>
+      </div>
+
+      <select class="filter-select" id="f-platform">
+        <option value="ALL">Все площадки</option>
+      </select>
+      <select class="filter-select" id="f-citizenship">
+        <option value="ALL">Все гражданства</option>
+      </select>
+      <select class="filter-select" id="f-status">
+        <option value="ALL">Все статусы</option>
+      </select>
+      <select class="filter-select" id="f-org">
+        <option value="ALL">Все организации</option>
+      </select>
+
+      <div class="search-box">
+        <span class="si">🔍</span>
+        <input type="text" id="global-search" placeholder="Поиск по ФИО, табном...">
+      </div>
+
+      <button class="btn btn-secondary btn-sm" onclick="App.applyFilters()">Применить</button>
+      <button class="btn btn-secondary btn-sm" onclick="App.resetFilters()">Сбросить</button>
+    </div>
+
+    <!-- Content -->
+    <div id="content">
+
+      <!-- ═══ DASHBOARD ═══ -->
+      <div class="tab-page active" id="tab-dashboard">
+
+        <!-- KPI Row -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card blue">
+            <div class="kpi-icon">👥</div>
+            <div class="kpi-val blue" id="kpi-total">—</div>
+            <div class="kpi-lbl">Всего сотрудников</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-val green" id="kpi-active">—</div>
+            <div class="kpi-lbl">Активные ОП</div>
+          </div>
+          <div class="kpi-card orange">
+            <div class="kpi-icon">🏁</div>
+            <div class="kpi-val orange" id="kpi-finished">—</div>
+            <div class="kpi-lbl">Завершённые ОП</div>
+          </div>
+          <div class="kpi-card purple">
+            <div class="kpi-icon">👔</div>
+            <div class="kpi-val purple" id="kpi-itr">—</div>
+            <div class="kpi-lbl">ИТР</div>
+          </div>
+          <div class="kpi-card cyan">
+            <div class="kpi-icon">🔨</div>
+            <div class="kpi-val cyan" id="kpi-workers">—</div>
+            <div class="kpi-lbl">Рабочие</div>
+          </div>
+          <div class="kpi-card red">
+            <div class="kpi-icon">🌍</div>
+            <div class="kpi-val red" id="kpi-foreign">—</div>
+            <div class="kpi-lbl">Иностранцев</div>
+          </div>
+        </div>
+
+        <!-- Charts row 1 -->
+        <div class="charts-row charts-row-3" style="margin-bottom:16px">
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">Гражданство</div></div>
+            <canvas id="chart-citizenship"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">Статус сотрудника</div></div>
+            <canvas id="chart-status"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">ИТР / Рабочие</div></div>
+            <canvas id="chart-class"></canvas>
+          </div>
+        </div>
+
+        <!-- Charts row 2 -->
+        <div class="charts-row charts-row-2" style="margin-bottom:16px">
+          <div class="chart-card">
+            <div class="card-header">
+              <div class="card-title">Динамика приёма/увольнения</div>
+            </div>
+            <canvas id="chart-dynamics" style="max-height:200px"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">Топ организации</div></div>
+            <canvas id="chart-orgs" style="max-height:200px"></canvas>
+          </div>
+        </div>
+
+        <!-- Mini tables row -->
+        <div class="charts-row charts-row-2">
+          <div class="mini-table-card">
+            <div style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">
+              📍 Площадки (ТОП-15)
+            </div>
+            <div style="max-height:240px;overflow-y:auto">
+              <table><thead><tr><th>Площадка</th><th style="text-align:right">Чел.</th></tr></thead>
+              <tbody id="tbl-platforms"></tbody></table>
+            </div>
+          </div>
+          <div class="mini-table-card">
+            <div style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600">
+              📆 График работы
+            </div>
+            <div style="max-height:240px;overflow-y:auto">
+              <table><thead><tr><th>График</th><th style="text-align:right">Чел.</th></tr></thead>
+              <tbody id="tbl-schedules"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-dashboard -->
+
+
+      <!-- ═══ EMPLOYEES ═══ -->
+      <div class="tab-page" id="tab-employees">
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <button class="btn btn-success btn-sm" onclick="Employees.exportExcel()">⬇️ Excel</button>
+            <button class="btn btn-secondary btn-sm" onclick="Employees.load()">🔄 Обновить</button>
+            <div class="data-table-info" id="emp-info">—</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table" id="emp-table">
+              <thead>
+                <tr>
+                  <th>Табном</th><th>ФИО</th><th>Гражданство</th><th>Дата рождения</th>
+                  <th>Должность</th><th>Подразделение</th><th>Площадка ЕЖУ</th>
+                  <th>Статус сотрудника</th><th>Статус ОП</th><th>Классификация</th>
+                  <th>График работы</th><th>Дата приёма</th><th>Дата увольнения</th>
+                  <th>Телефон</th><th>Организация</th>
+                </tr>
+              </thead>
+              <tbody id="emp-tbody">
+                <tr><td colspan="15" class="loading-overlay"><div class="spinner"></div> Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="dt-pagination">
+            <button class="pg-btn" id="emp-prev" onclick="Employees.prevPage()">← Назад</button>
+            <div class="pg-info" id="emp-pg-info">—</div>
+            <button class="pg-btn" id="emp-next" onclick="Employees.nextPage()">Вперёд →</button>
+          </div>
+        </div>
+      </div><!-- /tab-employees -->
+
+
+      <!-- ═══ REPORTS ═══ -->
+      <div class="tab-page" id="tab-reports">
+        <div class="report-tabs" id="report-tabs">
+          <button class="report-tab active" data-report="headcount">Численность</button>
+          <button class="report-tab" data-report="citizenship">Гражданство</button>
+          <button class="report-tab" data-report="dynamics">Динамика</button>
+          <button class="report-tab" data-report="age">Возраст</button>
+          <button class="report-tab" data-report="schedule">График работы</button>
+          <button class="report-tab" data-report="position">Должности</button>
+          <button class="report-tab" data-report="department">Подразделения</button>
+          <button class="report-tab" data-report="foreign">Иностранцы</button>
+          <button class="report-tab" data-report="expiring">Истекающие докум.</button>
+          <button class="report-tab" data-report="no-phone">Без телефона</button>
+          <button class="report-tab" data-report="duplicates">Дубликаты</button>
+          <button class="report-tab" data-report="org-tree">Структура</button>
+        </div>
+
+        <div id="reports-toolbar" style="display:flex;gap:8px;margin-bottom:12px;align-items:center">
+          <button class="btn btn-success btn-sm" id="btn-export-report" onclick="Reports.exportExcel()">⬇️ Excel</button>
+          <span style="font-size:11px;color:var(--text-muted)" id="report-info">—</span>
+        </div>
+
+        <div id="report-content">
+          <div class="loading-overlay"><div class="spinner"></div> Выберите отчёт</div>
+        </div>
+      </div><!-- /tab-reports -->
+
+
+      <!-- ═══ DAILY TRACKING ═══ -->
+      <div class="tab-page" id="tab-daily-tracking">
+        <div style="display:flex;gap:16px;align-items:flex-start">
+
+          <!-- Left: date panel -->
+          <div style="width:260px;flex-shrink:0">
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-title" style="margin-bottom:10px">📤 Загрузить файлы ЕЖУ</div>
+              <div class="form-group">
+                <label class="form-label">Дата учёта</label>
+                <input type="date" class="form-input" id="eju-date">
+              </div>
+              <div class="upload-zone" id="eju-drop-zone" onclick="document.getElementById('eju-files-input').click()">
+                <div class="uz-icon">📂</div>
+                <div class="uz-text">Выберите файлы ЕЖУ</div>
+                <div class="uz-sub">*.xlsx, *.xlsb (26 файлов)</div>
+              </div>
+              <input type="file" id="eju-files-input" multiple accept=".xlsx,.xlsb,.xls" style="display:none" onchange="DailyTracking.handleFiles(this.files)">
+              <div class="file-list" id="eju-file-list" style="margin-top:8px"></div>
+              <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="DailyTracking.upload()">⬆️ Загрузить и обработать</button>
+            </div>
+
+            <div class="mini-table-card">
+              <div style="padding:8px 12px;font-size:12px;font-weight:600;border-bottom:1px solid var(--border)">История загрузок</div>
+              <div style="max-height:300px;overflow-y:auto">
+                <table><thead><tr><th>Дата</th><th>Строк</th></tr></thead>
+                <tbody id="eju-dates-list"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: data table -->
+          <div style="flex:1;min-width:0">
+            <div class="data-table-wrap">
+              <div class="data-table-toolbar">
+                <select class="filter-select" id="eju-platform-filter" onchange="DailyTracking.loadData()">
+                  <option value="ALL">Все площадки</option>
+                </select>
+                <div class="search-box">
+                  <span class="si">🔍</span>
+                  <input type="text" id="eju-search" placeholder="Поиск...">
+                </div>
+                <div class="data-table-info" id="eju-info">—</div>
+              </div>
+              <div class="dt-wrapper">
+                <table class="dt-table">
+                  <thead><tr>
+                    <th>Регион</th><th>Площадка</th><th>Табном</th><th>ФИО</th>
+                    <th>Должность</th><th>Участок</th><th>ВИЗА</th>
+                    <th>Вид визы</th><th>Регион визы</th><th>Срок до</th><th>Въезд в РФ</th>
+                  </tr></thead>
+                  <tbody id="eju-tbody">
+                    <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Выберите дату и загрузите данные</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="dt-pagination">
+                <button class="pg-btn" id="eju-prev" onclick="DailyTracking.prevPage()">← Назад</button>
+                <div class="pg-info" id="eju-pg-info">—</div>
+                <button class="pg-btn" id="eju-next" onclick="DailyTracking.nextPage()">Вперёд →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-daily-tracking -->
+
+
+      <!-- ═══ CARNET ═══ -->
+      <div class="tab-page" id="tab-carnet">
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <button class="btn btn-primary btn-sm" onclick="Carnet.addRow()">+ Добавить</button>
+            <button class="btn btn-success btn-sm" onclick="Carnet.exportExcel()">⬇️ Excel</button>
+            <div class="data-table-info" id="carnet-info">—</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table" id="carnet-table">
+              <thead><tr>
+                <th>Табном</th><th>ФИО</th><th>Подразделение</th><th>Тип документа</th>
+                <th>Серия</th><th>Номер</th><th>Срок документа</th>
+                <th>Тип Карнета</th><th>№ Карнета</th><th>Срок Карнета</th><th>Примечание</th>
+                <th>Действия</th>
+              </tr></thead>
+              <tbody id="carnet-tbody">
+                <tr><td colspan="12" style="text-align:center;padding:30px;color:var(--text-muted)">Нет данных</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-carnet -->
+
+
+      <!-- ═══ TICKETS BUY ═══ -->
+      <div class="tab-page" id="tab-tickets-buy">
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <button class="btn btn-primary btn-sm" onclick="Tickets.addRow()">+ Добавить строку</button>
+            <button class="btn btn-secondary btn-sm" onclick="Tickets.importPDF()">📄 Загрузить PDF</button>
+            <button class="btn btn-secondary btn-sm" onclick="Tickets.fillFromBase()">🔍 Заполнить из Базы</button>
+            <button class="btn btn-success btn-sm" onclick="Tickets.exportExcel()">⬇️ Экспорт Заявки</button>
+            <button class="btn btn-danger btn-sm" onclick="Tickets.clearAll()">🗑️ Очистить</button>
+            <select class="filter-select" id="tkt-dept-filter" style="max-width:160px" onchange="Tickets.load()">
+              <option value="">Все подразделения</option>
+            </select>
+            <div class="data-table-info" id="tkt-info">—</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table" id="tkt-table">
+              <thead><tr>
+                <th>№</th><th>Подразделение</th><th>Отдел</th><th>Операция</th>
+                <th>Классификация</th><th>Дата заказа</th><th>Организация</th>
+                <th>ФИО</th><th>ФИО лат</th><th>Табном</th><th>Гражданство</th>
+                <th>Дата рождения</th><th>Вид документа</th><th>Серия</th><th>Номер</th>
+                <th>Дата выдачи</th><th>Дата оконч.</th><th>Кем выдан</th>
+                <th>Маршрут</th><th>Обоснование</th><th>АВИА/ЖД</th>
+                <th>Дата вылета</th><th>Примечание</th><th>Ответственный</th>
+                <th>Билет</th><th>Сумма</th><th>Оплата</th><th>Телефон</th><th>Действия</th>
+              </tr></thead>
+              <tbody id="tkt-tbody">
+                <tr><td colspan="29" style="text-align:center;padding:30px;color:var(--text-muted)">Добавьте строки или загрузите PDF</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="dt-pagination">
+            <button class="pg-btn" id="tkt-prev" onclick="Tickets.prevPage()">← Назад</button>
+            <div class="pg-info" id="tkt-pg-info">—</div>
+            <button class="pg-btn" id="tkt-next" onclick="Tickets.nextPage()">Вперёд →</button>
+          </div>
+        </div>
+      </div><!-- /tab-tickets-buy -->
+
+
+      <!-- ═══ TICKETS COSTS ═══ -->
+      <div class="tab-page" id="tab-tickets-costs">
+        <div class="grid grid-3" style="margin-bottom:16px">
+          <div class="kpi-card blue">
+            <div class="kpi-icon">💰</div>
+            <div class="kpi-val blue" id="cost-total-val">—</div>
+            <div class="kpi-lbl">Общая сумма (руб.)</div>
+          </div>
+          <div class="kpi-card green">
+            <div class="kpi-icon">🎫</div>
+            <div class="kpi-val green" id="cost-count-val">—</div>
+            <div class="kpi-lbl">Билетов</div>
+          </div>
+          <div class="kpi-card orange">
+            <div class="kpi-icon">📁</div>
+            <div class="kpi-val orange" id="cost-files-val">—</div>
+            <div class="kpi-lbl">Источников</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:10px">📤 Загрузить реестры затрат</div>
+          <div class="upload-zone" onclick="document.getElementById('costs-input').click()">
+            <div class="uz-icon">📊</div>
+            <div class="uz-text">Загрузить реестры по билетам</div>
+            <div class="uz-sub">1Монтаж_билеты.xlsx, 2Монтаж_билеты.xlsx, СК_билеты.xlsx</div>
+          </div>
+          <input type="file" id="costs-input" multiple accept=".xlsx,.xls" style="display:none" onchange="TicketCosts.upload(this.files)">
+        </div>
+
+        <div class="charts-row charts-row-2" style="margin-bottom:16px">
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">Затраты по организациям</div></div>
+            <canvas id="chart-costs-org"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="card-header"><div class="card-title">Затраты по месяцам</div></div>
+            <canvas id="chart-costs-month"></canvas>
+          </div>
+        </div>
+
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <div class="data-table-info" id="costs-info">—</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table">
+              <thead><tr>
+                <th>Источник</th><th>Табном</th><th>ФИО</th><th>Маршрут</th>
+                <th>Дата вылета</th><th>№ Билета</th><th>Сумма</th>
+                <th>Оплата</th><th>Организация</th><th>Подразделение</th><th>Примечание</th>
+              </tr></thead>
+              <tbody id="costs-tbody">
+                <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--text-muted)">Загрузите реестры затрат</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-tickets-costs -->
+
+
+      <!-- ═══ EVAL ROP ═══ -->
+      <div class="tab-page" id="tab-eval-rop">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:10px">📤 Загрузить оценки РОП (2024, 2025, 2026 РОП.xlsx)</div>
+          <div class="upload-zone" onclick="document.getElementById('rop-input').click()">
+            <div class="uz-icon">⭐</div>
+            <div class="uz-text">Загрузить файлы оценок РОП</div>
+            <div class="uz-sub">2024 РОП.xlsx / 2025 РОП.xlsx / 2026 РОП.xlsx</div>
+          </div>
+          <input type="file" id="rop-input" multiple accept=".xlsx,.xls" style="display:none" onchange="Eval.uploadROP(this.files)">
+        </div>
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <button class="btn btn-success btn-sm" onclick="Eval.exportROPExcel()">⬇️ Excel</button>
+            <div class="data-table-info" id="rop-info">—</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table">
+              <thead><tr>
+                <th>Год</th><th>Месяц</th><th>Табном</th><th>ФИО</th><th>Подразделение</th>
+                <th>Должность</th><th>Оценка</th><th>Примечание</th>
+              </tr></thead>
+              <tbody id="rop-tbody">
+                <tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">Загрузите файл оценок РОП</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══ EVAL ITR ═══ -->
+      <div class="tab-page" id="tab-eval-itr">
+        <div class="card" style="margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:10px">📤 Загрузить оценки ИТР</div>
+          <div class="upload-zone" onclick="document.getElementById('itr-input').click()">
+            <div class="uz-icon">🎯</div>
+            <div class="uz-text">Загрузить файлы оценок ИТР</div>
+            <div class="uz-sub">*.xlsx</div>
+          </div>
+          <input type="file" id="itr-input" multiple accept=".xlsx,.xls" style="display:none">
+        </div>
+        <div class="data-table-wrap">
+          <div class="data-table-toolbar">
+            <div class="data-table-info" id="itr-info">Нет данных</div>
+          </div>
+          <div class="dt-wrapper">
+            <table class="dt-table">
+              <thead><tr>
+                <th>Год</th><th>Табном</th><th>ФИО</th><th>Должность</th><th>Подразделение</th>
+                <th>Оценка</th><th>Примечание</th>
+              </tr></thead>
+              <tbody id="itr-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">Загрузите файл оценок ИТР</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══ OCR PASSPORT ═══ -->
+      <div class="tab-page" id="tab-ocr-passport">
+        <div class="grid grid-2" style="gap:16px">
+          <div>
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-title" style="margin-bottom:10px">🛂 OCR Паспорта (23 страны)</div>
+              <div id="ocr-model-info" style="margin-bottom:10px;font-size:11px;color:var(--text-muted)">Проверка Ollama...</div>
+              <div class="form-group">
+                <label class="form-label">Модель OCR</label>
+                <select class="form-input" id="ocr-model-select">
+                  <option value="glm-ocr:latest">glm-ocr:latest (рекомендуется)</option>
+                  <option value="qwen2.5vl:latest">qwen2.5vl:latest</option>
+                  <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
+                </select>
+              </div>
+              <div class="upload-zone" id="ocr-drop-zone" onclick="document.getElementById('ocr-input').click()">
+                <div class="uz-icon">📷</div>
+                <div class="uz-text">Загрузить фото паспорта</div>
+                <div class="uz-sub">JPG, PNG, WEBP — любой из 23 стран</div>
+              </div>
+              <input type="file" id="ocr-input" accept="image/*" style="display:none" onchange="OCRPassport.process(this.files[0])">
+              <div id="ocr-preview" style="margin-top:10px;display:none">
+                <img id="ocr-img" style="max-width:100%;border-radius:6px;border:1px solid var(--border)">
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-title" style="margin-bottom:10px">📋 Результат распознавания</div>
+              <div id="ocr-result-fields" style="display:none">
+                <div class="ocr-field"><span class="ocr-key">Фамилия</span><span class="ocr-val" id="ocr-surname">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Имя</span><span class="ocr-val" id="ocr-name">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Отчество</span><span class="ocr-val" id="ocr-patronymic">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Дата рождения</span><span class="ocr-val" id="ocr-birth">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Пол</span><span class="ocr-val" id="ocr-gender">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Место рождения</span><span class="ocr-val" id="ocr-birthplace">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Серия</span><span class="ocr-val" id="ocr-series">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Номер</span><span class="ocr-val" id="ocr-num">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Дата выдачи</span><span class="ocr-val" id="ocr-issue">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Кем выдан</span><span class="ocr-val" id="ocr-issuer">—</span></div>
+                <div class="ocr-field"><span class="ocr-key">Срок действия</span><span class="ocr-val" id="ocr-expire">—</span></div>
+              </div>
+              <div id="ocr-raw-result" style="display:none">
+                <div class="ocr-result" id="ocr-raw-text"></div>
+              </div>
+              <div id="ocr-placeholder" style="color:var(--text-muted);text-align:center;padding:40px 0;font-size:13px">
+                Загрузите фото паспорта для распознавания
+              </div>
+              <div id="ocr-loading" style="display:none" class="loading-overlay">
+                <div class="spinner"></div> Распознавание...
+              </div>
+              <div id="ocr-actions" style="display:none;margin-top:12px;gap:8px;flex-wrap:wrap" class="flex">
+                <button class="btn btn-success btn-sm" onclick="OCRPassport.addToBase()">➕ Добавить в базу</button>
+                <button class="btn btn-secondary btn-sm" onclick="OCRPassport.copyJSON()">📋 Скопировать JSON</button>
+                <button class="btn btn-secondary btn-sm" onclick="OCRPassport.clear()">🔄 Новое</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Batch OCR -->
+        <div class="card" style="margin-top:16px">
+          <div class="card-title" style="margin-bottom:10px">📦 Пакетная обработка паспортов</div>
+          <div style="display:flex;gap:10px;align-items:flex-end">
+            <div style="flex:1">
+              <div class="upload-zone" onclick="document.getElementById('ocr-batch-input').click()" style="padding:20px">
+                <div class="uz-text">Выберите несколько фото</div>
+                <div class="uz-sub">JPG, PNG — до 50 файлов</div>
+              </div>
+              <input type="file" id="ocr-batch-input" multiple accept="image/*" style="display:none" onchange="OCRPassport.batchProcess(this.files)">
+            </div>
+            <button class="btn btn-success" onclick="OCRPassport.exportBatch()">⬇️ Экспорт в Excel</button>
+          </div>
+          <div id="ocr-batch-results" style="margin-top:10px"></div>
+        </div>
+      </div><!-- /tab-ocr-passport -->
+
+
+      <!-- ═══ OCR DOCS ═══ -->
+      <div class="tab-page" id="tab-ocr-docs">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px">🔍 Универсальный OCR документов</div>
+            <div class="form-group">
+              <label class="form-label">Тип документа</label>
+              <select class="form-input" id="doc-type-select">
+                <option value="auto">Определить автоматически</option>
+                <option value="passport_ru">Паспорт РФ</option>
+                <option value="passport_foreign">Иностранный паспорт</option>
+                <option value="visa">Виза / Разрешение на работу</option>
+              </select>
+            </div>
+            <div class="upload-zone" onclick="document.getElementById('doc-input').click()">
+              <div class="uz-icon">📄</div>
+              <div class="uz-text">Загрузить документ</div>
+              <div class="uz-sub">JPG, PNG, WEBP, PDF</div>
+            </div>
+            <input type="file" id="doc-input" accept="image/*,.pdf" style="display:none" onchange="OCRDocs.process(this.files[0])">
+            <div id="doc-preview" style="margin-top:10px;display:none">
+              <img id="doc-img" style="max-width:100%;border-radius:6px">
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:10px">📋 Результат</div>
+            <div id="doc-loading" style="display:none" class="loading-overlay">
+              <div class="spinner"></div> Обработка...
+            </div>
+            <div id="doc-result" class="ocr-result" style="display:none;min-height:200px"></div>
+            <div id="doc-placeholder" style="color:var(--text-muted);text-align:center;padding:40px 0">
+              Загрузите документ
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══ UTILITIES ═══ -->
+      <div class="tab-page" id="tab-utilities">
+        <!-- Built dynamically by buildUtilitiesTab() in utilities.js -->
+      </div><!-- /tab-utilities -->
+
+
+      <!-- ═══ SETTINGS ═══ -->
+      <div class="tab-page" id="tab-settings">
+        <div class="grid grid-2">
+
+          <div>
+            <!-- Main base upload -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🗃️ Основная база (БАЗА.xlsx)</div>
+              <div id="base-info" style="margin-bottom:12px;font-size:12px;color:var(--text-muted)">Не загружена</div>
+              <div class="upload-zone" id="base-drop" onclick="document.getElementById('base-input').click()">
+                <div class="uz-icon">📊</div>
+                <div class="uz-text">Загрузить БАЗА.xlsx</div>
+                <div class="uz-sub">Лист "База_1С" — основная база сотрудников</div>
+              </div>
+              <input type="file" id="base-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadMainBase(this.files[0])">
+              <button class="btn btn-secondary" style="margin-top:10px;width:100%" onclick="Settings.reloadBase()">🔄 Перезагрузить из кэша</button>
+            </div>
+
+            <!-- Routes -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🗺️ Маршруты (МАРШРУТ.xlsx)</div>
+              <div class="upload-zone" style="padding:20px" onclick="document.getElementById('routes-input').click()">
+                <div class="uz-text">Загрузить МАРШРУТ.xlsx</div>
+              </div>
+              <input type="file" id="routes-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadRoutes(this.files[0])">
+            </div>
+
+            <!-- Ticket costs -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:10px">💰 Реестры затрат на билеты</div>
+              <div class="upload-zone" style="padding:20px" onclick="document.getElementById('tc-input').click()">
+                <div class="uz-text">Загрузить реестры</div>
+                <div class="uz-sub">1Монтаж_билеты.xlsx, 2Монтаж_билеты.xlsx, СК_билеты.xlsx</div>
+              </div>
+              <input type="file" id="tc-input" multiple accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadTicketCosts(this.files)">
+            </div>
+          </div>
+
+          <div>
+            <!-- DB Info -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:12px">📊 Информация о базе данных</div>
+              <div id="db-info-content">
+                <div class="loading-overlay"><div class="spinner"></div></div>
+              </div>
+            </div>
+
+            <!-- Ollama status -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🤖 Статус Ollama AI</div>
+              <div id="ollama-status-content">
+                <div class="loading-overlay"><div class="spinner"></div></div>
+              </div>
+              <div class="form-group" style="margin-top:10px">
+                <label class="form-label">URL Ollama сервера</label>
+                <input class="form-input" id="ollama-url-input" placeholder="http://localhost:11434" value="http://localhost:11434">
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="Settings.saveOllamaUrl()">Сохранить URL</button>
+            </div>
+
+            <!-- Load log -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom:10px">📜 Журнал операций</div>
+              <div class="mini-table-card" style="max-height:200px;overflow-y:auto">
+                <table>
+                  <thead><tr><th>Время</th><th>Действие</th><th>Файл</th><th>Строк</th><th>Статус</th></tr></thead>
+                  <tbody id="load-log-tbody">
+                    <tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text-muted)">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="btn btn-secondary btn-sm" style="margin-top:8px" onclick="Settings.loadLog()">🔄 Обновить</button>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-settings -->
+
+    </div><!-- /content -->
+  </div><!-- /main-area -->
+</div><!-- /app -->
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- Scripts -->
+<script src="/static/js/app.js"></script>
+<script src="/static/js/dashboard.js"></script>
+<script src="/static/js/employees.js"></script>
+<script src="/static/js/reports.js"></script>
+<script src="/static/js/tickets.js"></script>
+<script src="/static/js/daily_tracking.js"></script>
+<script src="/static/js/ocr.js"></script>
+<script src="/static/js/settings.js"></script>
+<script src="/static/js/utilities.js"></script>
+
+</body>
+</html>
