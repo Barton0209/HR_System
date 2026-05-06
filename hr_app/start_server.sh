@@ -32,6 +32,11 @@ pip3 install -q -r "${PROJECT_ROOT}/requirements.txt" 2>/dev/null || {
     echo "⚠️ Предупреждение: некоторые пакеты могут не установиться"
 }
 
+# Создание необходимых директорий
+mkdir -p "${PROJECT_ROOT}/data/uploads"
+mkdir -p "${PROJECT_ROOT}/data/reports"
+mkdir -p "${PROJECT_ROOT}/data/excel_files"
+
 # Получение IP адреса для доступа из локальной сети
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 PORT=${PORT:-8000}
@@ -42,21 +47,28 @@ echo "=========================================="
 echo "  🚀 Запуск сервера..."
 echo "=========================================="
 echo ""
-echo "  Локальный доступ: http://localhost:${PORT}"
-echo "  Доступ из сети:   http://${LOCAL_IP}:${PORT}"
+echo "  🌐 Локальный доступ: http://localhost:${PORT}"
+echo "  🌐 Доступ из сети:   http://${LOCAL_IP}:${PORT}"
 echo ""
-echo "  Endpoints мониторинга:"
-echo "    - Health: http://localhost:${PORT}/health"
-echo "    - Metrics: http://localhost:${PORT}/metrics"
-echo "    - Stats: http://localhost:${PORT}/stats"
+echo "  📊 Endpoints мониторинга:"
+echo "     - Health: http://localhost:${PORT}/health"
+echo "     - Metrics: http://localhost:${PORT}/metrics"
+echo "     - Stats: http://localhost:${PORT}/stats"
 echo ""
-echo "  Для остановки нажмите: Ctrl+C"
+echo "  📁 Директории данных:"
+echo "     - Uploads: ${PROJECT_ROOT}/data/uploads"
+echo "     - Reports: ${PROJECT_ROOT}/data/reports"
+echo "     - Excel:   ${PROJECT_ROOT}/data/excel_files"
+echo ""
+echo "  ⚙️  Для остановки нажмите: Ctrl+C"
 echo ""
 echo "=========================================="
 echo ""
 
-# Запуск сервера
+# Запуск сервера с оптимизациями производительности
 exec python3 -m uvicorn hr_app.backend.main:app \
     --host ${HOST} \
     --port ${PORT} \
-    --reload
+    --workers 2 \
+    --loop asyncio \
+    --http h11
