@@ -18,7 +18,7 @@
 
 ## Быстрый старт
 
-### Локальная разработка
+### Локальный запуск (без Docker)
 ```bash
 # 1. Установка зависимостей
 pip install -r requirements.txt
@@ -27,11 +27,20 @@ pip install -r requirements.txt
 cp .env.example .env
 # Отредактируйте .env
 
-# 3. Запуск через Docker Compose
-docker-compose up -d
+# 3. Инициализация БД
+python infrastructure/postgresql/init_db.py
 
-# 4. Инициализация БД
-make db-init
+# 4. Запуск сервисов
+# В отдельных терминалах:
+
+# OCR Core
+cd ocr_core && python main.py
+
+# NLP Layer
+cd nlp_layer && python main.py
+
+# Ingestor
+cd ingestor && python main.py
 
 # 5. Запуск Ticket App (GUI)
 python ticket_app/main.py
@@ -103,13 +112,12 @@ idps/
 │   │   ├── wizard.py
 │   │   └── pdf_viewer.py
 │   └── requirements.txt
-├── charts/                   # Helm Charts
+├── charts/                   # Helm Charts (для production)
 │   └── idps/
 │       ├── Chart.yaml
 │       ├── values.yaml
 │       └── templates/
-├── docker-compose.yml        # Локальная разработка
-├── Makefile                  # Команды сборки
+├── Makefile                  # Вспомогательные команды
 └── README.md
 ```
 
@@ -196,7 +204,13 @@ python -m ocr_core.benchmark --dataset data/test/
 ### Логи
 ```bash
 # Просмотр логов OCR
-docker-compose logs -f ocr-core
+tail -f logs/ocr_core.log
+
+# Логи NLP Layer
+tail -f logs/nlp_layer.log
+
+# Логи Ingestor
+tail -f logs/ingestor.log
 
 # Логи Ticket App
 tail -f logs/ticket_app.log
