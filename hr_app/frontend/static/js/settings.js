@@ -101,6 +101,78 @@ const Settings = {
     }
   },
 
+  async uploadPasswordAccess(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    Toast.show(`Загрузка ${file.name}...`, 'info', 3000);
+    try {
+      const result = await apiUpload('/settings/upload-password-access', fd);
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка загрузки: ' + e.message, 'error');
+    }
+  },
+
+  async uploadDepartments(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    Toast.show(`Загрузка ${file.name}...`, 'info', 3000);
+    try {
+      const result = await apiUpload('/settings/upload-departments', fd);
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка загрузки: ' + e.message, 'error');
+    }
+  },
+
+  async uploadAreas(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    Toast.show(`Загрузка ${file.name}...`, 'info', 3000);
+    try {
+      const result = await apiUpload('/settings/upload-areas', fd);
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка загрузки: ' + e.message, 'error');
+    }
+  },
+
+  async uploadPositions(file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    Toast.show(`Загрузка ${file.name}...`, 'info', 3000);
+    try {
+      const result = await apiUpload('/settings/upload-positions', fd);
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка загрузки: ' + e.message, 'error');
+    }
+  },
+
   async uploadRoutes(file) {
     if (!file) return;
     const fd = new FormData();
@@ -121,6 +193,38 @@ const Settings = {
       Toast.show(result.message, 'success');
       this.loadLog();
     } catch(e) { Toast.show('Ошибка: ' + e.message, 'error'); }
+  },
+
+  async generateTotalExperienceReport() {
+    Toast.show('Генерация отчета ОБЩИЙ_СТАЖ.xlsx...', 'info', 3000);
+    try {
+      const result = await api('/settings/generate-total-experience-report', { method: 'POST' });
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        window.open('/settings/download-report/ОБЩИЙ_СТАЖ.xlsx', '_blank');
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка генерации: ' + e.message, 'error');
+    }
+  },
+
+  async generateTicketCostsReport() {
+    Toast.show('Генерация отчета Реестр_по_затратам_на_билеты.xlsx...', 'info', 3000);
+    try {
+      const result = await api('/settings/generate-ticket-costs-report', { method: 'POST' });
+      if (result.ok) {
+        Toast.show(`✅ ${result.message}`, 'success', 4000);
+        window.open('/settings/download-report/Реестр_по_затратам_на_билеты.xlsx', '_blank');
+        this.loadLog();
+      } else {
+        Toast.show('❌ ' + result.message, 'error', 5000);
+      }
+    } catch(e) {
+      Toast.show('Ошибка генерации: ' + e.message, 'error');
+    }
   },
 
   async reloadBase() {
