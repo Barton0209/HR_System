@@ -1,9 +1,13 @@
 """
 Auth Router - Аутентификация и авторизация пользователей
 Данные загружаются из Excel_files/ПАРОЛЬ_ДОСТУП.xlsx
+
+Улучшения:
+- Хэширование паролей через bcrypt
+- Валидация входных данных
+- Rate limiting (на уровне middleware)
 """
 import os
-import hashlib
 import logging
 from pathlib import Path
 from typing import Optional, Dict, List
@@ -12,23 +16,25 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
+import bcrypt
 
 from hr_app.backend.database import get_conn, set_setting, get_setting
+from hr_app.backend.config import settings
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-# Путь к файлу с паролями
-PASSWORDS_FILE = Path(os.getenv("PASSWORDS_FILE", "Excel_files/ПАРОЛЬ_ДОСТУП.xlsx"))
+# Путь к файлу с паролями (из настроек или env)
+PASSWORDS_FILE = Path(os.getenv("PASSWORDS_FILE", settings.passwords_file))
 
 # Хранилище пользователей в памяти (загружается из Excel)
 _users_db: Dict[str, dict] = {}
 
-# Секретный ключ для JWT (в production использовать env variable)
-SECRET_KEY = os.getenv("SECRET_KEY", "hr_system_secret_key_change_in_production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 часов
+# Секретный ключ для JWT (из настроек)
+SECRET_KEY = os.getenv("SECRET_KEY", settings.secret_key)
+ALGORITHM = settings.jwt_algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -49,8 +55,18 @@ class UserInfo(BaseModel):
 
 
 def _hash_password(password: str) -> str:
-    """Хеширование пароля."""
-    return hashlib.sha256(password.encode()).hexdigest()
+    """Хеширование пароля через bcrypt."""
+    salt = bcrypt.gensalt(rounds=settings.bcrypt_salt_rounds)
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
+
+def _verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Проверка пароля через bcrypt."""
+    try:
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 
 def load_users_from_excel():
@@ -121,9 +137,12 @@ def load_users_from_excel():
             login = str(login).strip()
             password = row[col_map['password']] if col_map['password'] < len(row) else ''
             
+            # Хешируем пароль при загрузке
+            password_hash = _hash_password(str(password))
+            
             user_data = {
                 'login': login,
-                'password_hash': _hash_password(str(password)),
+                'password_hash': password_hash,
                 'fio': str(row[col_map.get('fio', 3)]) if col_map.get('fio') and col_map['fio'] < len(row) else '',
                 'email': str(row[col_map.get('email', 4)]) if col_map.get('email') and col_map['email'] < len(row) else '',
                 'position': str(row[col_map.get('position', 5)]) if col_map.get('position') and col_map['position'] < len(row) else '',
@@ -191,9 +210,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Проверяем пароль
-    password_hash = _hash_password(form_data.password)
-    if user['password_hash'] != password_hash:
+    # Проверяем пароль через bcrypt
+    if not _verify_password(form_data.password, user['password_hash']):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверное имя пользователя или пароль",
@@ -206,6 +224,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {
         "access_token": access_token,
         "token_type": "bearer",
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         "user": {
             "login": user['login'],
             "fio": user['fio'],
