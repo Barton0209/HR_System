@@ -719,6 +719,43 @@
               <button class="btn btn-secondary" style="margin-top:10px;width:100%" onclick="Settings.reloadBase()">🔄 Перезагрузить из кэша</button>
             </div>
 
+            <!-- Password Access -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🔐 ПАРОЛЬ_ДОСТУП.xlsx</div>
+              <div class="upload-zone" onclick="document.getElementById('password-access-input').click()">
+                <div class="uz-text">Загрузить пароли доступа</div>
+                <div class="uz-sub">Лист "ПАРОЛЬ_ДОСТУП": Логин, Пароль, ДОСТУП, ФИО, Email, Должность, Отдел, Доступ к Карнет</div>
+              </div>
+              <input type="file" id="password-access-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadPasswordAccess(this.files[0])">
+            </div>
+
+            <!-- Departments -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🏢 Подразделение_Отдел_Участок.xlsx</div>
+              <div class="upload-zone" onclick="document.getElementById('departments-input').click()">
+                <div class="uz-text">Загрузить подразделения</div>
+              </div>
+              <input type="file" id="departments-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadDepartments(this.files[0])">
+            </div>
+
+            <!-- Areas -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">🌍 Терр_ПЛОЩ_ПОДР_СтатусОП_Регион.xlsx</div>
+              <div class="upload-zone" onclick="document.getElementById('areas-input').click()">
+                <div class="uz-text">Загрузить территории</div>
+              </div>
+              <input type="file" id="areas-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadAreas(this.files[0])">
+            </div>
+
+            <!-- Positions -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">💼 Должность, Классификация.xlsx</div>
+              <div class="upload-zone" onclick="document.getElementById('positions-input').click()">
+                <div class="uz-text">Загрузить должности</div>
+              </div>
+              <input type="file" id="positions-input" accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadPositions(this.files[0])">
+            </div>
+
             <!-- Routes -->
             <div class="card" style="margin-bottom:16px">
               <div class="card-title" style="margin-bottom:10px">🗺️ Маршруты (МАРШРУТ.xlsx)</div>
@@ -729,13 +766,20 @@
             </div>
 
             <!-- Ticket costs -->
-            <div class="card">
+            <div class="card" style="margin-bottom:16px">
               <div class="card-title" style="margin-bottom:10px">💰 Реестры затрат на билеты</div>
               <div class="upload-zone" style="padding:20px" onclick="document.getElementById('tc-input').click()">
                 <div class="uz-text">Загрузить реестры</div>
                 <div class="uz-sub">1Монтаж_билеты.xlsx, 2Монтаж_билеты.xlsx, СК_билеты.xlsx</div>
               </div>
               <input type="file" id="tc-input" multiple accept=".xlsx,.xls" style="display:none" onchange="Settings.uploadTicketCosts(this.files)">
+            </div>
+
+            <!-- Generate Reports -->
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-title" style="margin-bottom:10px">📄 Генерация отчетов</div>
+              <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px" onclick="Settings.generateTotalExperienceReport()">📊 Создать ОБЩИЙ_СТАЖ.xlsx</button>
+              <button class="btn btn-primary btn-sm" style="width:100%" onclick="Settings.generateTicketCostsReport()">✈️ Создать Реестр_по_затратам_на_билеты.xlsx</button>
             </div>
           </div>
 

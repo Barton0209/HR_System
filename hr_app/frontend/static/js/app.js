@@ -20,8 +20,14 @@ const Toast = {
     const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
     const el = document.createElement('div');
     el.className = `toast ${type}`;
+    // Экранируем сообщение для предотвращения XSS
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
     el.innerHTML = `<span class="t-icon">${icons[type]}</span>
-      <span class="t-msg">${msg}</span>
+      <span class="t-msg">${escapeHtml(String(msg))}</span>
       <span class="t-close" onclick="this.parentElement.remove()">✕</span>`;
     document.getElementById('toast-container').appendChild(el);
     setTimeout(() => el.remove(), duration);
@@ -179,9 +185,15 @@ const App = {
     const sel = document.getElementById(elId);
     if (!sel) return;
     const cur = sel.value;
-    sel.innerHTML = `<option value="ALL">${allLabel}</option>` +
+    // Экранируем HTML для предотвращения XSS
+    const escapeHtml = (text) => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+    sel.innerHTML = `<option value="ALL">${escapeHtml(allLabel)}</option>` +
       options.filter(o => o !== 'ALL').map(o =>
-        `<option value="${o}">${o}</option>`
+        `<option value="${escapeHtml(String(o))}">${escapeHtml(String(o))}</option>`
       ).join('');
     if (cur && cur !== 'ALL') sel.value = cur;
   },

@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 
 from hr_app.backend.database import init_db
 from hr_app.backend.routers import (
-    dashboard, employees, reports, tickets, daily_tracking, ocr, settings, utilities, carnet
+    dashboard, employees, reports, tickets, daily_tracking, ocr, settings, utilities, carnet, auth
 )
 
 # Настройка логирования
@@ -36,9 +36,9 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# CORS - разрешаем только с localhost для безопасности
+# CORS - разрешаем доступ из локальной сети
 # В production замените на конкретные домены
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000,http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,6 +49,7 @@ app.add_middleware(
 )
 
 # Routers
+app.include_router(auth.router)
 app.include_router(dashboard.router)
 app.include_router(employees.router)
 app.include_router(reports.router)
