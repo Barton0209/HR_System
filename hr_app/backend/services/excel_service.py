@@ -534,3 +534,313 @@ def export_ticket_orders_excel(orders: List[Dict], output_path: str) -> bool:
     except Exception as e:
         logger.exception("Error exporting to Excel")
         return False
+
+
+# ============================================================================
+# ЗАГРУЗКА ПАРОЛЕЙ ДОСТУПА И СПРАВОЧНИКОВ
+# ============================================================================
+
+def load_password_access(file_path: str) -> Tuple[bool, str, int]:
+    """Загрузка ПАРОЛЬ_ДОСТУП.xlsx - лист ПАРОЛЬ_ДОСТУП
+    Колонки: A-Логин, B-Пароль, C-ДОСТУП (Площадка_ЕЖУ), D-ФИО, E-Email, F-Должность, G-Отдел, H-Доступ к Карнет
+    """
+    try:
+        logger.info("Loading password access from %s", file_path)
+        
+        xl = pd.ExcelFile(file_path)
+        sheet = "ПАРОЛЬ_ДОСТУП" if "ПАРОЛЬ_ДОСТУП" in xl.sheet_names else xl.sheet_names[0]
+        
+        df = pd.read_excel(file_path, sheet_name=sheet, header=0, dtype=str)
+        df.columns = df.columns.astype(str).str.strip()
+        
+        # Map columns
+        col_map = {}
+        for col in df.columns:
+            col_lower = col.lower().strip()
+            if 'логин' in col_lower:
+                col_map[col] = 'login'
+            elif 'пароль' in col_lower:
+                col_map[col] = 'password'
+            elif 'доступ' in col_lower and ('площадк' in col_lower or 'ежу' in col_lower or col_lower == 'доступ'):
+                col_map[col] = 'access_platform'
+            elif 'фио' in col_lower:
+                col_map[col] = 'fio'
+            elif 'email' in col_lower:
+                col_map[col] = 'email'
+            elif 'должност' in col_lower:
+                col_map[col] = 'position'
+            elif 'отдел' in col_lower:
+                col_map[col] = 'department'
+            elif 'карнет' in col_lower:
+                col_map[col] = 'carnet_access'
+        
+        # Fallback: positional mapping
+        if not col_map and len(df.columns) >= 8:
+            cols = list(df.columns)[:8]
+            col_map = {
+                cols[0]: 'login',
+                cols[1]: 'password',
+                cols[2]: 'access_platform',
+                cols[3]: 'fio',
+                cols[4]: 'email',
+                cols[5]: 'position',
+                cols[6]: 'department',
+                cols[7]: 'carnet_access',
+            }
+        
+        df = df.rename(columns=col_map)
+        
+        # Clean data
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: safe_str(x) if pd.notna(x) else "")
+        
+        # Filter rows with login
+        df = df[df['login'].notna() & (df['login'] != "")]
+        
+        # Store in database table for user access control
+        count = 0
+        with get_conn() as conn:
+            # Create table if not exists
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_access (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    login TEXT UNIQUE,
+                    password TEXT,
+                    access_platform TEXT,
+                    fio TEXT,
+                    email TEXT,
+                    position TEXT,
+                    department TEXT,
+                    carnet_access TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            for _, row in df.iterrows():
+                try:
+                    conn.execute("""
+                        INSERT OR REPLACE INTO user_access 
+                        (login, password, access_platform, fio, email, position, department, carnet_access)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        row.get('login', ''),
+                        row.get('password', ''),
+                        row.get('access_platform', ''),
+                        row.get('fio', ''),
+                        row.get('email', ''),
+                        row.get('position', ''),
+                        row.get('department', ''),
+                        row.get('carnet_access', ''),
+                    ))
+                    count += 1
+                except Exception as e:
+                    logger.warning("Error inserting user %s: %s", row.get('login'), e)
+        
+        log_action("load_password_access", os.path.basename(file_path), count, "ok")
+        return True, f"Загружено {count} пользователей", count
+        
+    except Exception as e:
+        logger.exception("Error loading password access")
+        log_action("load_password_access", os.path.basename(file_path), 0, "error", str(e))
+        return False, f"Ошибка загрузки: {e}", 0
+
+
+def load_departments(file_path: str) -> Tuple[bool, str, int]:
+    """Загрузка Подразделение_Отдел_Участок.xlsx"""
+    try:
+        logger.info("Loading departments from %s", file_path)
+        
+        df = pd.read_excel(file_path, dtype=str)
+        df.columns = df.columns.astype(str).str.strip()
+        
+        # Clean data
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: safe_str(x) if pd.notna(x) else "")
+        
+        count = len(df)
+        
+        # Store as JSON setting
+        data = df.to_dict('records')
+        set_setting("departments_data", json.dumps(data, ensure_ascii=False))
+        
+        log_action("load_departments", os.path.basename(file_path), count, "ok")
+        return True, f"Загружено {count} записей подразделений", count
+        
+    except Exception as e:
+        logger.exception("Error loading departments")
+        log_action("load_departments", os.path.basename(file_path), 0, "error", str(e))
+        return False, f"Ошибка загрузки: {e}", 0
+
+
+def load_areas(file_path: str) -> Tuple[bool, str, int]:
+    """Загрузка Терр_ПЛОЩ_ПОДР_СтатусОП_Регион.xlsx"""
+    try:
+        logger.info("Loading areas from %s", file_path)
+        
+        df = pd.read_excel(file_path, dtype=str)
+        df.columns = df.columns.astype(str).str.strip()
+        
+        # Clean data
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: safe_str(x) if pd.notna(x) else "")
+        
+        count = len(df)
+        
+        # Store as JSON setting
+        data = df.to_dict('records')
+        set_setting("areas_data", json.dumps(data, ensure_ascii=False))
+        
+        log_action("load_areas", os.path.basename(file_path), count, "ok")
+        return True, f"Загружено {count} записей территорий", count
+        
+    except Exception as e:
+        logger.exception("Error loading areas")
+        log_action("load_areas", os.path.basename(file_path), 0, "error", str(e))
+        return False, f"Ошибка загрузки: {e}", 0
+
+
+def load_positions(file_path: str) -> Tuple[bool, str, int]:
+    """Загрузка Должность, Классификация.xlsx"""
+    try:
+        logger.info("Loading positions from %s", file_path)
+        
+        df = pd.read_excel(file_path, dtype=str)
+        df.columns = df.columns.astype(str).str.strip()
+        
+        # Clean data
+        for col in df.columns:
+            df[col] = df[col].apply(lambda x: safe_str(x) if pd.notna(x) else "")
+        
+        count = len(df)
+        
+        # Store as JSON setting
+        data = df.to_dict('records')
+        set_setting("positions_data", json.dumps(data, ensure_ascii=False))
+        
+        log_action("load_positions", os.path.basename(file_path), count, "ok")
+        return True, f"Загружено {count} записей должностей", count
+        
+    except Exception as e:
+        logger.exception("Error loading positions")
+        log_action("load_positions", os.path.basename(file_path), 0, "error", str(e))
+        return False, f"Ошибка загрузки: {e}", 0
+
+
+def generate_total_experience_report(output_path: str) -> Tuple[bool, str, int]:
+    """Генерация отчета ОБЩИЙ_СТАЖ.xlsx из основной базы сотрудников"""
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
+        
+        with get_conn() as conn:
+            employees = conn.execute("""
+                SELECT tab_num, fio, position, department, hire_date, fire_date, total
+                FROM employees
+                WHERE tab_num IS NOT NULL AND tab_num != ''
+                ORDER BY tab_num
+            """).fetchall()
+        
+        if not employees:
+            return False, "Нет данных для генерации отчета", 0
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "ОБЩИЙ_СТАЖ"
+        
+        # Header styling
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(color="FFFFFF", bold=True, name="Calibri", size=11)
+        thin = Side(style="thin")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+        
+        headers = ["Табельный номер", "ФИО", "Должность", "Подразделение", 
+                   "Дата приема", "Дата увольнения", "Общий стаж"]
+        
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+        
+        for row_idx, emp in enumerate(employees, 2):
+            for col_idx, val in enumerate(emp, 1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=val if val else "")
+                cell.border = border
+                cell.font = Font(name="Calibri", size=10)
+        
+        # Auto width
+        for col in ws.columns:
+            max_len = max((len(str(c.value or "")) for c in col), default=0)
+            ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 2, 30)
+        
+        wb.save(output_path)
+        
+        log_action("generate_total_experience_report", output_path, len(employees), "ok")
+        return True, f"Сгенерирован отчет для {len(employees)} сотрудников", len(employees)
+        
+    except Exception as e:
+        logger.exception("Error generating total experience report")
+        log_action("generate_total_experience_report", output_path, 0, "error", str(e))
+        return False, f"Ошибка генерации: {e}", 0
+
+
+def generate_ticket_costs_report(output_path: str) -> Tuple[bool, str, int]:
+    """Генерация Реестр_по_затратам_на_билеты.xlsx из загруженных реестров"""
+    try:
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
+        
+        with get_conn() as conn:
+            costs = conn.execute("""
+                SELECT source_file, tab_num, fio, route, flight_date, 
+                       ticket_num, amount, payment, org, department, note
+                FROM ticket_costs
+                ORDER BY flight_date DESC, tab_num
+            """).fetchall()
+        
+        if not costs:
+            return False, "Нет данных о затратах на билеты", 0
+        
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Затраты на билеты"
+        
+        # Header styling
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(color="FFFFFF", bold=True, name="Calibri", size=11)
+        thin = Side(style="thin")
+        border = Border(left=thin, right=thin, top=thin, bottom=thin)
+        
+        headers = ["Источник", "Таб.номер", "ФИО", "Маршрут", "Дата вылета",
+                   "Номер билета", "Сумма", "Оплата", "Организация", "Подразделение", "Примечание"]
+        
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx, value=header)
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.border = border
+        
+        for row_idx, cost in enumerate(costs, 2):
+            for col_idx, val in enumerate(cost, 1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=val if val else "")
+                cell.border = border
+                cell.font = Font(name="Calibri", size=10)
+        
+        # Auto width
+        for col in ws.columns:
+            max_len = max((len(str(c.value or "")) for c in col), default=0)
+            ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 2, 25)
+        
+        wb.save(output_path)
+        
+        log_action("generate_ticket_costs_report", output_path, len(costs), "ok")
+        return True, f"Сгенерирован отчет по {len(costs)} записям", len(costs)
+        
+    except Exception as e:
+        logger.exception("Error generating ticket costs report")
+        log_action("generate_ticket_costs_report", output_path, 0, "error", str(e))
+        return False, f"Ошибка генерации: {e}", 0
